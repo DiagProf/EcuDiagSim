@@ -1,0 +1,20 @@
+<Page
+    x:Class="EcuDiagSim.App.Views.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    Style="{StaticResource CommonPageStyle}"
+    mc:Ignorable="d">
+
+    <Grid Style="{StaticResource PageBodyGridStyle}">
+        <StackPanel Margin="{StaticResource MediumMargin}" Orientation="Vertical">
+
+            <!--  Title  -->
+            <TextBlock x:Uid="MainPage_Title" Style="{ThemeResource TitleTextBlockStyle}" />
+
+        </StackPanel>
+    </Grid>
+
+</Page>

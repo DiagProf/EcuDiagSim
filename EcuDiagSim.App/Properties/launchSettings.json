@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "EcuDiagSim.App (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "EcuDiagSim.App (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
