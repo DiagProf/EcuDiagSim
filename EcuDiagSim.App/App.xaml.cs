@@ -14,6 +14,18 @@ using Microsoft.UI.Xaml;
 //https://devblogs.microsoft.com/dotnet/announcing-the-dotnet-community-toolkit-800/
 //https://mariusbancila.ro/blog/2022/04/08/unwrapping-winui3-for-cpp/
 //https://github.com/microsoft/WinUI-Gallery/tree/main
+//https://github.com/XamlBrewer/XamlBrewer.WinUI3.Navigation.Sample
+//https://gist.github.com/mrjfalk/93f7c66cabce1f68fef7102c38b2505e
+//https://github.com/microsoft/microsoft-ui-xaml/issues/4100
+//https://www.youtube.com/watch?v=nKguHB3LD9A&list=PLWyJQIhN3vyOjJAdrURtKL7zDHFojN1sD&index=2
+//https://stackoverflow.com/questions/71792862/c-sharp-winui-3-i-cannot-use-the-file-specified-from-a-filesavepicker-dialog-to
+//https://www.davidbritch.com/2022/09/
+//https://devblogs.microsoft.com/dotnet/announcing-the-dotnet-community-toolkit-810/
+//https://github.com/microsoft/microsoft-ui-xaml/issues/3912
+//https://learn.microsoft.com/en-us/windows/apps/develop/ui-input/retrieve-hwnd
+//https://github.com/dotMorten/WinUIEx/
+//https://learn.microsoft.com/en-us/windows/apps/winui/winui3/desktop-winui3-app-with-basic-interop
+
 
 namespace EcuDiagSim.App
 {
