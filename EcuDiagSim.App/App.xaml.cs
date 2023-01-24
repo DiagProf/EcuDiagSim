@@ -31,6 +31,8 @@ namespace EcuDiagSim.App
 {
     public partial class App : Application
     {
+        public static MainWindow MainWindow { get; private set; }
+
         private readonly IHost _host;
 
         public App()
@@ -50,6 +52,7 @@ namespace EcuDiagSim.App
             base.OnLaunched(args);
             IAppActivationService appWindowService = Ioc.Default.GetRequiredService<IAppActivationService>();
             appWindowService.Activate(args);
+            MainWindow = Ioc.Default.GetRequiredService<MainWindow>();
         }
 
         private static IHost BuildHost() => Host.CreateDefaultBuilder()

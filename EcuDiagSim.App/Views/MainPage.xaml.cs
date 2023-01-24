@@ -21,31 +21,20 @@ namespace EcuDiagSim.App.Views
 
         private async void MenuFlyoutItem_OnClick(object sender, RoutedEventArgs e)
         {
-            // Clear previous returned file name, if it exists, between iterations of this scenario
+           
             OutputTextBlock.Text = "";
-            //var hwnd = ViewModel.hwd;
-            FileOpenPicker openPicker = new FileOpenPicker();
-            // var hwnd = WindowNative.GetWindowHandle(this);
-            // Get the current window's HWND by passing in the Window object
-            //var hwnd = Process.GetCurrentProcess().MainWindowHandle;
-            var mw = Ioc.Default.GetRequiredService<MainWindow>();
-            var hwnd = WindowNative.GetWindowHandle(mw);
-            // var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.Current);
+          
+            FileOpenPicker picker = new FileOpenPicker();
 
-            // Associate the HWND with the file picker
-            WinRT.Interop.InitializeWithWindow.Initialize(openPicker, hwnd);
+            App.MainWindow.InitializeWithWindow(picker);
 
-            openPicker.ViewMode = PickerViewMode.Thumbnail;
-            openPicker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
-            openPicker.FileTypeFilter.Add(".jpg");
-            openPicker.FileTypeFilter.Add(".jpeg");
-            openPicker.FileTypeFilter.Add(".png");
-            StorageFile file = await openPicker.PickSingleFileAsync();
+            picker.ViewMode = PickerViewMode.Thumbnail;
+            picker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+            picker.FileTypeFilter.Add(".lua");
+            StorageFile file = await picker.PickSingleFileAsync();
             if (file != null)
             {
-                // The StorageFile has read/write access to the picked file.
-                // See the FileAccess sample for code that uses a StorageFile to read and write.
-                OutputTextBlock.Text = "Picked photo: " + file.Name;
+                OutputTextBlock.Text = "Picked lua: " + file.Name;
             }
             else
             {

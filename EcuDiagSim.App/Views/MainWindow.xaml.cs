@@ -2,6 +2,8 @@ using CommunityToolkit.Mvvm.DependencyInjection;
 using EcuDiagSim.App.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System;
+using WinRT.Interop;
 
 namespace EcuDiagSim.App.Views
 {
@@ -14,6 +16,13 @@ namespace EcuDiagSim.App.Views
             SetTitleBar(AppTitleBar);
             ViewModel = Ioc.Default.GetRequiredService<MainWindowViewModel>();
         }
+
+        public void InitializeWithWindow(object target)
+        {
+            var handle = WindowNative.GetWindowHandle(this);
+            WinRT.Interop.InitializeWithWindow.Initialize(target, handle);
+        }
+
 
         public AppTitleBar TitleBar { get => AppTitleBar; }
 
