@@ -25,17 +25,44 @@
 
 #endregion
 
-using System.Collections.Generic;
-using System.Linq;
-using EcuDiagSim.App.Models;
-using Microsoft.UI.Xaml;
+using System;
+using EcuDiagSim.App.Interfaces;
 
-namespace EcuDiagSim.App.Interfaces
+namespace EcuDiagSim.App.Services
 {
-    public interface IApiWithAssociatedVciService
+    internal class PathService : IPathService
     {
-        (string ApiShortName, string VciName)? LoadVciOnApiSettings();
-        bool SaveVciOnApiSettings(string apiShortName, string vciName = "");
-        IEnumerable<IGrouping<ApiForVehicleCommunication, VehicleCommunicationInterface>> GetAllInstalledApisWithRelatedVcis();
+        private readonly ISettingsService _settingsService;
+
+        protected string LuaWorkingDirectorySettingsKey { get; set; } = "LuaWorkingDirectory";
+
+        protected string SettingsName { get; set; }
+
+        public PathService(ISettingsService settingsService)
+        {
+            _settingsService = settingsService;
+            SettingsName = $"{GetType().Namespace}.{GetType().Name}";
+        }
+
+
+        public string? LoadLuaWorkingDirectory()
+        {
+            if ( _settingsService.TryLoad(SettingsName, LuaWorkingDirectorySettingsKey, out string? workingDirectory) is true )
+            {
+                return workingDirectory;
+            }
+
+            return null;
+        }
+
+        public bool SaveLuaWorkingDirectory(string workingDirectory)
+        {
+            if ( workingDirectory == null )
+            {
+                throw new ArgumentNullException(nameof(workingDirectory));
+            }
+
+            return _settingsService.TrySave(SettingsName, LuaWorkingDirectorySettingsKey, workingDirectory);
+        }
     }
 }

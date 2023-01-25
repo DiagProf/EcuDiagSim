@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Controls;
 using Windows.Storage.Pickers;
 using Windows.Storage;
 using WinRT.Interop;
+using System.Runtime.ConstrainedExecution;
 
 namespace EcuDiagSim.App.Views
 {
@@ -19,26 +20,37 @@ namespace EcuDiagSim.App.Views
 
         public MainPageViewModel ViewModel { get; }
 
-        private async void MenuFlyoutItem_OnClick(object sender, RoutedEventArgs e)
+
+        private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-           
-            OutputTextBlock.Text = "";
-          
-            FileOpenPicker picker = new FileOpenPicker();
+            ViewModel.InitializeCommand.Execute(this);
+        }
 
-            App.MainWindow.InitializeWithWindow(picker);
-
+        private async void MenuFlyoutItemSelectFile_OnClick(object sender, RoutedEventArgs e)
+        {
+            var picker = new FileOpenPicker();
+            App.MainWindow.InitializeWithWindow(picker); //Win UI 3 Desktop Hack
             picker.ViewMode = PickerViewMode.Thumbnail;
-            picker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+            picker.SuggestedStartLocation = PickerLocationId.ComputerFolder;
             picker.FileTypeFilter.Add(".lua");
             StorageFile file = await picker.PickSingleFileAsync();
             if (file != null)
             {
-                OutputTextBlock.Text = "Picked lua: " + file.Name;
+                await ViewModel.NewWorkingDirectoryCommand.ExecuteAsync(file.Path);
             }
-            else
+        }
+
+        private async void MenuFlyoutItemSelectFolder_OnClick(object sender, RoutedEventArgs e)
+        {
+            var picker = new FolderPicker();
+            App.MainWindow.InitializeWithWindow(picker); //Win UI 3 Desktop Hack
+            picker.ViewMode = PickerViewMode.Thumbnail;
+            picker.SuggestedStartLocation = PickerLocationId.ComputerFolder;
+            picker.FileTypeFilter.Add("*");
+            StorageFolder folder = await picker.PickSingleFolderAsync();
+            if (folder != null)
             {
-                OutputTextBlock.Text = "Operation cancelled.";
+                ViewModel.NewWorkingDirectoryCommand.Execute(folder.Path);
             }
         }
     }

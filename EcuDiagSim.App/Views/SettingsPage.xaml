@@ -11,8 +11,8 @@
     xmlns:converters1="using:CommunityToolkit.WinUI.UI.Converters"
     xmlns:collections="using:CommunityToolkit.Mvvm.Collections"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-    Loaded="Page_Loaded"
     Style="{StaticResource CommonPageStyle}"
+    Loaded="Page_Loaded"
     mc:Ignorable="d">
 
     <Page.Resources>

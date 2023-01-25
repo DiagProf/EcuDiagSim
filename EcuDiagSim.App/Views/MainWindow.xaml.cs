@@ -24,11 +24,11 @@ namespace EcuDiagSim.App.Views
         }
 
 
-        public AppTitleBar TitleBar { get => AppTitleBar; }
+        public AppTitleBar TitleBar => AppTitleBar;
 
-        public NavigationView AppNavigationViewControl { get => AppNavigationView; }
+        public NavigationView AppNavigationViewControl => AppNavigationView;
 
-        public Frame ContentFrameControl { get => ContentFrame; }
+        public Frame ContentFrameControl => ContentFrame;
 
         public MainWindowViewModel ViewModel { get; }
     }

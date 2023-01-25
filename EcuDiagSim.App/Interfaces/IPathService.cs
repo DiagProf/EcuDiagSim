@@ -25,17 +25,11 @@
 
 #endregion
 
-using System.Collections.Generic;
-using System.Linq;
-using EcuDiagSim.App.Models;
-using Microsoft.UI.Xaml;
-
 namespace EcuDiagSim.App.Interfaces
 {
-    public interface IApiWithAssociatedVciService
+    public interface IPathService
     {
-        (string ApiShortName, string VciName)? LoadVciOnApiSettings();
-        bool SaveVciOnApiSettings(string apiShortName, string vciName = "");
-        IEnumerable<IGrouping<ApiForVehicleCommunication, VehicleCommunicationInterface>> GetAllInstalledApisWithRelatedVcis();
+        string? LoadLuaWorkingDirectory();
+        bool SaveLuaWorkingDirectory(string workingDirectory);
     }
 }

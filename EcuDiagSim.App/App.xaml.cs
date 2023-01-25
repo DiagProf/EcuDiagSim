@@ -25,7 +25,8 @@ using Microsoft.UI.Xaml;
 //https://learn.microsoft.com/en-us/windows/apps/develop/ui-input/retrieve-hwnd
 //https://github.com/dotMorten/WinUIEx/
 //https://learn.microsoft.com/en-us/windows/apps/winui/winui3/desktop-winui3-app-with-basic-interop
-
+//https://devblogs.microsoft.com/dotnet/announcing-the-dotnet-community-toolkit-800/
+//https://devblogs.microsoft.com/dotnet/announcing-the-dotnet-community-toolkit-810/
 
 namespace EcuDiagSim.App
 {
@@ -67,6 +68,7 @@ namespace EcuDiagSim.App
                     .AddSingleton<INavigationViewService, NavigationViewService>()
                     .AddSingleton<IAppActivationService, AppActivationService>()
                     .AddSingleton<IApiWithAssociatedVciService, ApiWithAssociatedVciService>()
+                    .AddSingleton<IPathService, PathService>()
                     .AddSingleton<MainWindowViewModel>()
                     .AddSingleton<SettingsPageViewModel>()
                     .AddSingleton<MainPageViewModel>()

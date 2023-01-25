@@ -58,20 +58,11 @@ namespace EcuDiagSim.App.Services
 
         protected string VciNameKey { get; set; } = "VciName";
 
-        public void Initialize(Window window)
-        {
-            _window = window;
-
-            //if (LoadVciOnApiSettings() is (string ApiShortName, string VciName) && Width > 0 && Height > 0)
-            //{
-            //    SetVciOnApi(ApiShortName, VciName);
-            //}
-        }
 
         public (string ApiShortName, string VciName)? LoadVciOnApiSettings()
         {
-            if ((_settingsService.TryLoad(SettingsName, ApiShortNameKey, out string apiShortName) is true &&
-                 (_settingsService.TryLoad(SettingsName, VciNameKey, out string vciName) is true)))
+            if ( (_settingsService.TryLoad(SettingsName, ApiShortNameKey, out string apiShortName) is true &&
+                  (_settingsService.TryLoad(SettingsName, VciNameKey, out string vciName) is true)) )
             {
                 return (apiShortName, vciName);
             }
@@ -114,7 +105,7 @@ namespace EcuDiagSim.App.Services
                 {
                     yield return new VehicleCommunicationInterface
                     {
-                        //Also some API data to the VCI object to make it easier for us to connect to the VCI later.
+                        //Some API data to the VCI object to make it easier for us to connect to the VCI later.
                         Api = VciApiType.ISO229002, 
                         ApiShortName = apiDetail.ShortName,
                         //VCI-Data
@@ -124,14 +115,5 @@ namespace EcuDiagSim.App.Services
                 }
             }
         }
-
-        public void SetVciOnApi(string apiShortName, string vciName = "")
-        {
-            //if (_window is not null && width > 0 && height > 0)
-            //{
-            //    _window.GetAppWindow().Resize(new SizeInt32(width, height));
-            //}
-        }
-
     }
 }

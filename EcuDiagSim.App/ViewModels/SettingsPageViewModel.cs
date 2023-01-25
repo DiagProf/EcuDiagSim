@@ -98,11 +98,12 @@ namespace EcuDiagSim.App.ViewModels
             (string ApiName, string VciName)? vciOnApis = _apisWithCorrespondingVcisService.LoadVciOnApiSettings();
             if (vciOnApis != null)
             {
+                //last stored API/VCI in a dummy VciViewModel without VCI-State
                 _lastUsedVci = new VciViewModel(VciApiType.ISO229002, vciOnApis.GetValueOrDefault().ApiName, vciOnApis.GetValueOrDefault().VciName, "");
             }
             else
             {
-                //Dummy Model
+                //Dummy VciViewModel
                 _lastUsedVci = new VciViewModel(VciApiType.ISO229002, "Not selected", "", "");
             }
         }

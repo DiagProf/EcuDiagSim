@@ -6,24 +6,22 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     Style="{StaticResource CommonPageStyle}"
+    Loaded="Page_Loaded"
     mc:Ignorable="d">
 
-        <StackPanel Margin="{StaticResource MediumMargin}" Orientation="Vertical">
-            <MenuBar>
-                <MenuBarItem Title="File">
-                    <MenuFlyoutItem Text="Open File" Click="MenuFlyoutItem_OnClick"/>
-                    <MenuFlyoutItem Text="Select Folder"/>
-                    <MenuFlyoutSeparator />
-                    <MenuFlyoutItem Text="Exit"/>
-                </MenuBarItem>
-                <MenuBarItem Title="Help">
-                    <MenuFlyoutItem Text="About"/>
-                </MenuBarItem>
-            </MenuBar>
-            <!--  Title  -->
-            <TextBlock x:Uid="MainPage_Title" Style="{ThemeResource TitleTextBlockStyle}" />
-
-        <TextBlock x:Name="OutputTextBlock" />
+    <StackPanel Margin="{StaticResource MediumMargin}" Orientation="Vertical">
+        <!--  Title  -->
+        <TextBlock x:Uid="MainPage_Title" Style="{ThemeResource TitleTextBlockStyle}" />
+        <MenuBar>
+            <MenuBarItem Title="Select">
+                <MenuFlyoutItem Text="LUA File" Click="MenuFlyoutItemSelectFile_OnClick" />
+                <MenuFlyoutItem Text="LUA Folder" Click="MenuFlyoutItemSelectFolder_OnClick" />
+            </MenuBarItem>
+        </MenuBar>
+        <Grid  Background="Transparent" ColumnDefinitions="50, Auto, *" RowDefinitions ="50, Auto, *">
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.LuaWorkingDirectory, Mode=OneWay}" />
+        </Grid>
+        
 
     </StackPanel>
  

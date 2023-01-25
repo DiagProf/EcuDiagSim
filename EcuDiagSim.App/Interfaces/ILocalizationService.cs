@@ -14,8 +14,6 @@ namespace EcuDiagSim.App.Interfaces
         /// <returns>a </returns>
         bool IsAvailable(string language);
 
-        string LanguageSettingsKey { get; set; }
-
         string? GetLanguage();
 
         /// <summary>
