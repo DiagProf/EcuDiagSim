@@ -129,8 +129,14 @@
   <data name="ja" xml:space="preserve">
     <value>日本語</value>
   </data>
+  <data name="MainPage_LuaSource.Header" xml:space="preserve">
+    <value>LUA Source</value>
+  </data>
+  <data name="MainPage_SelectedLuaOverview.Header" xml:space="preserve">
+    <value>LUA file overview</value>
+  </data>
   <data name="MainPage_Title.Text" xml:space="preserve">
-    <value>Main Page</value>
+    <value>Home</value>
   </data>
   <data name="NavigationViewItem_Main.Content" xml:space="preserve">
     <value>Main</value>
@@ -179,6 +185,9 @@
   </data>
   <data name="SettingsPage_WindowSizeApply.Content" xml:space="preserve">
     <value>Apply</value>
+  </data>
+  <data name="SettingsPage_WindowSizeLoad.Content" xml:space="preserve">
+    <value>Load</value>
   </data>
   <data name="SettingsPage_WindowWidth.Header" xml:space="preserve">
     <value>Width</value>

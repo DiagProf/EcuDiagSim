@@ -129,6 +129,9 @@
   <data name="ja" xml:space="preserve">
     <value>日本語</value>
   </data>
+  <data name="MainPage_LuaSource.Header" xml:space="preserve">
+    <value>LUA Source</value>
+  </data>
   <data name="MainPage_Title.Text" xml:space="preserve">
     <value>Pagina Pricipal</value>
   </data>

@@ -2,26 +2,93 @@
     x:Class="EcuDiagSim.App.Views.MainPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:EcuDiagSim.App.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:toolkit="using:CommunityToolkit.WinUI.UI.Controls"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     Style="{StaticResource CommonPageStyle}"
     Loaded="Page_Loaded"
     mc:Ignorable="d">
 
+    <Page.Resources>
+        <Style TargetType="StackPanel">
+            <Setter Property="Spacing" Value="{StaticResource MediumSpacing}" />
+        </Style>
+        <Style TargetType="toolkit:ColorPickerButton">
+            <Setter Property="Margin" Value="{StaticResource SmallTopBottomMargin}" />
+            <Setter Property="ColorPickerStyle">
+                <Setter.Value>
+                    <Style TargetType="toolkit:ColorPicker">
+                        <Setter Property="IsAlphaSliderVisible" Value="False" />
+                        <Setter Property="IsAlphaEnabled" Value="False" />
+                        <Setter Property="IsHexInputVisible" Value="False" />
+                        <Setter Property="IsColorPreviewVisible" Value="False" />
+                        <Setter Property="IsColorChannelTextInputVisible" Value="False" />
+                        <Setter Property="IsColorSpectrumVisible" Value="False" />
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <converters:EnumToBoolConverter x:Key="EnumToBoolConverter" />
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    </Page.Resources>
+
     <StackPanel Margin="{StaticResource MediumMargin}" Orientation="Vertical">
         <!--  Title  -->
-        <TextBlock x:Uid="MainPage_Title" Style="{ThemeResource TitleTextBlockStyle}" />
-        <MenuBar>
-            <MenuBarItem Title="Select">
-                <MenuFlyoutItem Text="LUA File" Click="MenuFlyoutItemSelectFile_OnClick" />
-                <MenuFlyoutItem Text="LUA Folder" Click="MenuFlyoutItemSelectFolder_OnClick" />
-            </MenuBarItem>
-        </MenuBar>
-        <Grid  Background="Transparent" ColumnDefinitions="50, Auto, *" RowDefinitions ="50, Auto, *">
-            <TextBlock Grid.Row="1" Grid.Column="1" Text="{x:Bind ViewModel.LuaWorkingDirectory, Mode=OneWay}" />
-        </Grid>
-        
+        <!--<TextBlock x:Uid="MainPage_Title" Style="{ThemeResource TitleTextBlockStyle}" />-->
+       
+        <toolkit:HeaderedContentControl x:Uid="MainPage_LuaSource" Style="{StaticResource MainHeaderStyle}">
+            <StackPanel Margin="{StaticResource SmallTopBottomMargin}" Orientation="Vertical">
+                <MenuBar>
+                    <MenuBarItem Title="Select">
+                        <MenuFlyoutItem Text="LUA File" Click="MenuFlyoutItemSelectFile_OnClick" />
+                        <MenuFlyoutItem Text="LUA Folder" Click="MenuFlyoutItemSelectFolder_OnClick" />
+                    </MenuBarItem>
+                </MenuBar>
+                <!--<Button
+                    x:Uid="SettingsPage_WindowSizeApply"
+                    VerticalAlignment="Bottom"
+                    Command="{x:Bind ViewModel.UpdateWindowSizeCommand}"
+                    Style="{ThemeResource AccentButtonStyle}" />
+                <Button
+                    x:Uid="SettingsPage_WindowSizeLoad"
+                    VerticalAlignment="Bottom"
+                    Command="{x:Bind ViewModel.LoadWindowSizeCommand}"
+                    Style="{ThemeResource AccentButtonStyle}" />-->
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="-&gt;"/><TextBlock Text="{x:Bind ViewModel.LuaWorkingDirectory, Mode=OneWay}" />
+                </StackPanel>
+            </StackPanel>
+
+        </toolkit:HeaderedContentControl>
+
+        <toolkit:HeaderedContentControl x:Uid="MainPage_SelectedLuaOverview" Style="{StaticResource MainHeaderStyle}">
+            <StackPanel Margin="{StaticResource SmallTopBottomMargin}" Orientation="Horizontal">
+                <!--<ListView
+                    x:Name="VciListView"
+                    IsMultiSelectCheckBoxEnabled="False"
+                    ItemsSource="{Binding Source={StaticResource VcisBehindApiSource}, Mode=OneWay}"
+                    SelectedItem="{x:Bind ViewModel.LastUsedVci, Mode=TwoWay}"
+                    SelectionChanged=""
+                    SelectionMode="Single">
+                    <ListView.ItemTemplate>
+                        <DataTemplate  x:DataType="viewmodels:VciViewModel">
+                            <Grid Margin="0,0,0,10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <StackPanel Grid.Row="0" Orientation="Vertical">
+                                    <TextBlock Text="{x:Bind VciName}" TextWrapping="NoWrap" FontWeight="Medium"/>
+                                    <TextBlock Text="{x:Bind VciState}" TextWrapping="NoWrap" />
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>-->
+            </StackPanel>
+        </toolkit:HeaderedContentControl>
 
     </StackPanel>
  

@@ -5,8 +5,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Windows.Storage.Pickers;
 using Windows.Storage;
-using WinRT.Interop;
-using System.Runtime.ConstrainedExecution;
 
 namespace EcuDiagSim.App.Views
 {

@@ -150,6 +150,11 @@
                         VerticalAlignment="Bottom"
                         Command="{x:Bind ViewModel.UpdateWindowSizeCommand}"
                         Style="{ThemeResource AccentButtonStyle}" />
+                    <Button
+                        x:Uid="SettingsPage_WindowSizeLoad"
+                        VerticalAlignment="Bottom"
+                        Command="{x:Bind ViewModel.LoadWindowSizeCommand}"
+                        Style="{ThemeResource AccentButtonStyle}" />
                 </StackPanel>
             </toolkit:HeaderedContentControl>
 

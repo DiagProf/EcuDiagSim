@@ -222,6 +222,16 @@ namespace EcuDiagSim.App.ViewModels
 
         public VciViewModel SelectedVci { get; set; }
 
+        [RelayCommand]
+        private void LoadWindowSize()
+        {
+            if (_windowingService.GetWindowSize() is (int, int) windowSize)
+            {
+                WindowWidth = windowSize.Width;
+                WindowHeight = windowSize.Height;
+                _ = _windowingService.SaveWindowSizeSettings(WindowWidth, WindowHeight);
+            }
+        }
 
         [RelayCommand]
         private void UpdateWindowSize()
