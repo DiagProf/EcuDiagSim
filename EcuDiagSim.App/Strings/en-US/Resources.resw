@@ -132,6 +132,9 @@
   <data name="MainPage_LuaSource.Header" xml:space="preserve">
     <value>LUA Source</value>
   </data>
+  <data name="MainPage_RunLua.Header" xml:space="preserve">
+    <value>Run LUA based ECU simulation</value>
+  </data>
   <data name="MainPage_SelectedLuaOverview.Header" xml:space="preserve">
     <value>LUA file overview</value>
   </data>
@@ -143,6 +146,9 @@
   </data>
   <data name="MainPage_Title.Text" xml:space="preserve">
     <value>Home</value>
+  </data>
+  <data name="MainPage_ToggleStartStop.Content" xml:space="preserve">
+    <value>Start &amp; Stop</value>
   </data>
   <data name="NavigationViewItem_Main.Content" xml:space="preserve">
     <value>Main</value>

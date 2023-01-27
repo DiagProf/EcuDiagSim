@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -12,15 +13,37 @@ namespace EcuDiagSim.App.ViewModels
     public partial class MainPageViewModel
     {
         private readonly IPathService _pathService;
-
-        [ObservableProperty] 
-        private FileInfoViewModel[]? _luaFileInfos;
-
         private string _luaWorkingDirectory = string.Empty;
+        private bool _IsRunning = false;
+
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(ToggleStartStopCommand))]
+        private FileInfoViewModel[] _luaFileInfos;
+
+
+        partial void OnLuaFileInfosChanged(FileInfoViewModel[] value)
+        {
+            if ( value.Any())
+            {
+                CanRun = true;
+            }
+            else
+            {
+                CanRun = false;
+            }
+        }
+
+        [ObservableProperty]
+        private string _state;
+
+        //[ObservableProperty]
+        //public bool _isStartStopPossible;
+        private bool CanRun { get; set; }
 
         public MainPageViewModel(IPathService pathService)
         {
             _pathService = pathService;
+            _state = "";
         }
 
 
@@ -70,6 +93,20 @@ namespace EcuDiagSim.App.ViewModels
         {
             _luaWorkingDirectory = _pathService.LoadLuaWorkingDirectory() ?? "";
             UpdateLuaFileInfos(_luaWorkingDirectory);
+        }
+
+        [RelayCommand(AllowConcurrentExecutions = false, CanExecute = nameof(CanRun))]
+        private async Task ToggleStartStopAsync()
+        {
+            if ( _IsRunning )
+            {
+            }
+            else
+            {
+                
+            }
+
+            await Task.Delay(43);
         }
     }
 }

@@ -20,40 +20,50 @@
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     </Page.Resources>
 
-    <StackPanel Margin="{StaticResource MediumMargin}" Orientation="Vertical">
-        <!--  Title  -->
-        <!--<TextBlock x:Uid="MainPage_Title" Style="{ThemeResource TitleTextBlockStyle}" />-->
-       
-        <toolkit:HeaderedContentControl x:Uid="MainPage_LuaSource" Style="{StaticResource MainHeaderStyle}">
-            <StackPanel Margin="{StaticResource SmallTopBottomMargin}" Orientation="Vertical">
-                <!--<MenuBar>
-                    <MenuBarItem Title="Select">
-                        <MenuFlyoutItem Text="Select LUA File" Click="MenuFlyoutItemSelectFile_OnClick" />
-                        <MenuFlyoutItem Text="Select LUA Folder" Click="MenuFlyoutItemSelectFolder_OnClick" />
-                    </MenuBarItem>
-                </MenuBar>-->
-                <Button
-                    x:Uid="MainPage_SelectLuaFile"
-                    VerticalAlignment="Bottom"
-                    Click="MenuFlyoutItemSelectFile_OnClick"
-                    Style="{ThemeResource AccentButtonStyle}" />
-                <Button
-                    x:Uid="MainPage_SelectLuaFolder"
-                    VerticalAlignment="Bottom"
-                    Click="MenuFlyoutItemSelectFolder_OnClick"
-                    Style="{ThemeResource AccentButtonStyle}" />
+    <Grid Padding="8">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0.05*">
+            </ColumnDefinition>
+            <ColumnDefinition Width="0.9*">
+            </ColumnDefinition>
+            <ColumnDefinition Width="0.05*">
+            </ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="1">
 
-                <!--<StackPanel Orientation="Horizontal">
-                    <TextBlock Text="-&gt;"/><TextBlock Text="{x:Bind ViewModel.LuaWorkingDirectory, Mode=OneWay}" />
-                </StackPanel>-->
-            </StackPanel>
+            <Grid ColumnDefinitions="0.5*,0.5*">
+                <toolkit:HeaderedContentControl Grid.Column="0" x:Uid="MainPage_LuaSource" Style="{StaticResource MainHeaderStyle}">
+                    <StackPanel Margin="{StaticResource SmallTopBottomMargin}" Orientation="Vertical">
+                        <Button
+                            x:Uid="MainPage_SelectLuaFile"
+                            VerticalAlignment="Center"
+                            Click="MenuFlyoutItemSelectFile_OnClick"
+                            Style="{ThemeResource DefaultButtonStyle}" />
+                        <Button
+                            x:Uid="MainPage_SelectLuaFolder"
+                            VerticalAlignment="Center"
+                            Click="MenuFlyoutItemSelectFolder_OnClick"
+                            Style="{ThemeResource DefaultButtonStyle}" />
+                    </StackPanel>
+                </toolkit:HeaderedContentControl>
 
-        </toolkit:HeaderedContentControl>
+                <toolkit:HeaderedContentControl Grid.Column="1" x:Uid="MainPage_RunLua" Style="{StaticResource MainHeaderStyle}">
+                    <StackPanel Margin="{StaticResource SmallTopBottomMargin}" Orientation="Vertical">
+                        <Button
+                            x:Uid="MainPage_ToggleStartStop"
+                            VerticalAlignment="Center"
+                            Command="{x:Bind ViewModel.ToggleStartStopCommand}"
+                            Style="{ThemeResource AccentButtonStyle}" />
 
-        <toolkit:HeaderedContentControl x:Uid="MainPage_SelectedLuaOverview" Style="{StaticResource MainHeaderStyle}">
+                        <TextBlock Text="{x:Bind ViewModel.State}"></TextBlock>
+                    </StackPanel>
+                </toolkit:HeaderedContentControl>
+            </Grid>
+
+            <toolkit:HeaderedContentControl x:Uid="MainPage_SelectedLuaOverview" Style="{StaticResource MainHeaderStyle}">
             <StackPanel Margin="{StaticResource SmallTopBottomMargin}" Orientation="Horizontal">
                 <ListView
-                    x:Name="VciListView"
+                    x:Name="LuaFileListView"
                     IsMultiSelectCheckBoxEnabled="False"
                     ItemsSource="{x:Bind ViewModel.LuaFileInfos, Mode=OneWay}"
                     SelectionMode="None">
@@ -79,7 +89,8 @@
             </StackPanel>
         </toolkit:HeaderedContentControl>
 
-    </StackPanel>
- 
+        </StackPanel>
+    </Grid>
+
 
 </Page>
