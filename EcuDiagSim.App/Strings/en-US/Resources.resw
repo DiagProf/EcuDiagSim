@@ -144,11 +144,14 @@
   <data name="MainPage_SelectLuaFolder.Content" xml:space="preserve">
     <value>Select LUA folder</value>
   </data>
+  <data name="MainPage_Start.Content" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="MainPage_Stop.Content" xml:space="preserve">
+    <value>Stop</value>
+  </data>
   <data name="MainPage_Title.Text" xml:space="preserve">
     <value>Home</value>
-  </data>
-  <data name="MainPage_ToggleStartStop.Content" xml:space="preserve">
-    <value>Start &amp; Stop</value>
   </data>
   <data name="NavigationViewItem_Main.Content" xml:space="preserve">
     <value>Main</value>

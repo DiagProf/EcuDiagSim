@@ -14,10 +14,13 @@ namespace EcuDiagSim.App.ViewModels
     {
         private readonly IPathService _pathService;
         private string _luaWorkingDirectory = string.Empty;
-        private bool _IsRunning = false;
 
         [ObservableProperty]
-        [NotifyCanExecuteChangedFor(nameof(ToggleStartStopCommand))]
+        [NotifyCanExecuteChangedFor(nameof(StopCommand))]
+        private bool _isRunning;
+
+        [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(StartCommand))]
         private FileInfoViewModel[] _luaFileInfos;
 
 
@@ -36,8 +39,7 @@ namespace EcuDiagSim.App.ViewModels
         [ObservableProperty]
         private string _state;
 
-        //[ObservableProperty]
-        //public bool _isStartStopPossible;
+ 
         private bool CanRun { get; set; }
 
         public MainPageViewModel(IPathService pathService)
@@ -91,22 +93,35 @@ namespace EcuDiagSim.App.ViewModels
         [RelayCommand]
         private void Initialize()
         {
+            if (IsRunning)
+                return;
+
             _luaWorkingDirectory = _pathService.LoadLuaWorkingDirectory() ?? "";
             UpdateLuaFileInfos(_luaWorkingDirectory);
         }
 
         [RelayCommand(AllowConcurrentExecutions = false, CanExecute = nameof(CanRun))]
-        private async Task ToggleStartStopAsync()
+        private async Task StartAsync()
         {
-            if ( _IsRunning )
+            IsRunning = true;
+            try
             {
+                State = "Is Running";
+                await Task.Delay(15000);
             }
-            else
+            finally
             {
-                
+                IsRunning = false;
             }
+        }
 
+        [RelayCommand(AllowConcurrentExecutions = false, CanExecute = nameof(IsRunning))]
+        private async Task StopAsync()
+        {
+            IsRunning = false;
+            State = "Is Stopping";
             await Task.Delay(43);
+           
         }
     }
 }
