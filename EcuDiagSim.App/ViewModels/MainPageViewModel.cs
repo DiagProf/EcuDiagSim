@@ -12,6 +12,7 @@ namespace EcuDiagSim.App.ViewModels
     public partial class MainPageViewModel
     {
         private readonly IPathService _pathService;
+        private readonly IApiWithAssociatedVciService _apiWithAssociatedVciService;
 
         [ObservableProperty] 
         [NotifyCanExecuteChangedFor(nameof(StopCommand))]
@@ -28,9 +29,10 @@ namespace EcuDiagSim.App.ViewModels
 
         private bool CanRun { get; set; }
 
-        public MainPageViewModel(IPathService pathService)
+        public MainPageViewModel(IPathService pathService, IApiWithAssociatedVciService apiWithAssociatedVciService)
         {
             _pathService = pathService;
+            _apiWithAssociatedVciService = apiWithAssociatedVciService;
             _state = "";
         }
 
