@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -13,20 +12,32 @@ namespace EcuDiagSim.App.ViewModels
     public partial class MainPageViewModel
     {
         private readonly IPathService _pathService;
-        private string _luaWorkingDirectory = string.Empty;
 
-        [ObservableProperty]
+        [ObservableProperty] 
         [NotifyCanExecuteChangedFor(nameof(StopCommand))]
         private bool _isRunning;
 
-        [ObservableProperty]
+        [ObservableProperty] 
         [NotifyCanExecuteChangedFor(nameof(StartCommand))]
         private FileInfoViewModel[] _luaFileInfos;
+
+        private string _luaWorkingDirectory = string.Empty;
+
+        [ObservableProperty] 
+        private string _state;
+
+        private bool CanRun { get; set; }
+
+        public MainPageViewModel(IPathService pathService)
+        {
+            _pathService = pathService;
+            _state = "";
+        }
 
 
         partial void OnLuaFileInfosChanged(FileInfoViewModel[] value)
         {
-            if ( value.Any())
+            if ( value.Any() )
             {
                 CanRun = true;
             }
@@ -34,18 +45,6 @@ namespace EcuDiagSim.App.ViewModels
             {
                 CanRun = false;
             }
-        }
-
-        [ObservableProperty]
-        private string _state;
-
- 
-        private bool CanRun { get; set; }
-
-        public MainPageViewModel(IPathService pathService)
-        {
-            _pathService = pathService;
-            _state = "";
         }
 
 
@@ -93,8 +92,10 @@ namespace EcuDiagSim.App.ViewModels
         [RelayCommand]
         private void Initialize()
         {
-            if (IsRunning)
+            if ( IsRunning )
+            {
                 return;
+            }
 
             _luaWorkingDirectory = _pathService.LoadLuaWorkingDirectory() ?? "";
             UpdateLuaFileInfos(_luaWorkingDirectory);
@@ -121,7 +122,6 @@ namespace EcuDiagSim.App.ViewModels
             IsRunning = false;
             State = "Is Stopping";
             await Task.Delay(43);
-           
         }
     }
 }
