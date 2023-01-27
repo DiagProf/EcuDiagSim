@@ -34,7 +34,7 @@ namespace EcuDiagSim.App.Views
             StorageFile file = await picker.PickSingleFileAsync();
             if (file != null)
             {
-                await ViewModel.NewWorkingDirectoryCommand.ExecuteAsync(file.Path);
+                ViewModel.NewWorkingDirectoryCommand.Execute(file.Path);
             }
         }
 

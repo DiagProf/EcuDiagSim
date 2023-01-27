@@ -26,6 +26,7 @@ using Microsoft.UI.Xaml;
 //https://github.com/dotMorten/WinUIEx/
 //https://learn.microsoft.com/en-us/windows/apps/winui/winui3/desktop-winui3-app-with-basic-interop
 //https://devblogs.microsoft.com/dotnet/announcing-the-dotnet-community-toolkit-800/
+//https://devblogs.microsoft.com/dotnet/announcing-dotnet-community-toolkit-v810-preview-1/
 //https://devblogs.microsoft.com/dotnet/announcing-the-dotnet-community-toolkit-810/
 
 namespace EcuDiagSim.App

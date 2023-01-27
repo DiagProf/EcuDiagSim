@@ -135,6 +135,12 @@
   <data name="MainPage_SelectedLuaOverview.Header" xml:space="preserve">
     <value>LUA file overview</value>
   </data>
+  <data name="MainPage_SelectLuaFile.Content" xml:space="preserve">
+    <value>Select LUA file</value>
+  </data>
+  <data name="MainPage_SelectLuaFolder.Content" xml:space="preserve">
+    <value>Select LUA folder</value>
+  </data>
   <data name="MainPage_Title.Text" xml:space="preserve">
     <value>Home</value>
   </data>
