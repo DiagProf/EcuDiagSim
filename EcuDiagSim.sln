@@ -5,9 +5,7 @@ VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EcuDiagSim", "EcuDiagSim\EcuDiagSim.csproj", "{0EF00FB8-F84E-4AD7-8264-D33C8D3A1561}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EcuDiagSim.Demo", "EcuDiagSim.Demo\EcuDiagSim.Demo.csproj", "{33F0334F-EF60-464E-8DE0-2B98C80DC2B4}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EcuDiagSim.App", "EcuDiagSim.App\EcuDiagSim.App.csproj", "{4FE8B244-D4AD-4993-9F1F-D3879837A46F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EcuDiagSim.App", "EcuDiagSim.App\EcuDiagSim.App.csproj", "{4FE8B244-D4AD-4993-9F1F-D3879837A46F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,22 +35,6 @@ Global
 		{0EF00FB8-F84E-4AD7-8264-D33C8D3A1561}.Release|x64.Build.0 = Release|Any CPU
 		{0EF00FB8-F84E-4AD7-8264-D33C8D3A1561}.Release|x86.ActiveCfg = Release|Any CPU
 		{0EF00FB8-F84E-4AD7-8264-D33C8D3A1561}.Release|x86.Build.0 = Release|Any CPU
-		{33F0334F-EF60-464E-8DE0-2B98C80DC2B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{33F0334F-EF60-464E-8DE0-2B98C80DC2B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{33F0334F-EF60-464E-8DE0-2B98C80DC2B4}.Debug|arm64.ActiveCfg = Debug|Any CPU
-		{33F0334F-EF60-464E-8DE0-2B98C80DC2B4}.Debug|arm64.Build.0 = Debug|Any CPU
-		{33F0334F-EF60-464E-8DE0-2B98C80DC2B4}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{33F0334F-EF60-464E-8DE0-2B98C80DC2B4}.Debug|x64.Build.0 = Debug|Any CPU
-		{33F0334F-EF60-464E-8DE0-2B98C80DC2B4}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{33F0334F-EF60-464E-8DE0-2B98C80DC2B4}.Debug|x86.Build.0 = Debug|Any CPU
-		{33F0334F-EF60-464E-8DE0-2B98C80DC2B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{33F0334F-EF60-464E-8DE0-2B98C80DC2B4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{33F0334F-EF60-464E-8DE0-2B98C80DC2B4}.Release|arm64.ActiveCfg = Release|Any CPU
-		{33F0334F-EF60-464E-8DE0-2B98C80DC2B4}.Release|arm64.Build.0 = Release|Any CPU
-		{33F0334F-EF60-464E-8DE0-2B98C80DC2B4}.Release|x64.ActiveCfg = Release|Any CPU
-		{33F0334F-EF60-464E-8DE0-2B98C80DC2B4}.Release|x64.Build.0 = Release|Any CPU
-		{33F0334F-EF60-464E-8DE0-2B98C80DC2B4}.Release|x86.ActiveCfg = Release|Any CPU
-		{33F0334F-EF60-464E-8DE0-2B98C80DC2B4}.Release|x86.Build.0 = Release|Any CPU
 		{4FE8B244-D4AD-4993-9F1F-D3879837A46F}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{4FE8B244-D4AD-4993-9F1F-D3879837A46F}.Debug|Any CPU.Build.0 = Debug|x64
 		{4FE8B244-D4AD-4993-9F1F-D3879837A46F}.Debug|Any CPU.Deploy.0 = Debug|x64
