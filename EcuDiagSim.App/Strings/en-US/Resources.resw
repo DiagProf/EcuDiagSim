@@ -159,6 +159,9 @@
   <data name="NavigationViewItem_Settings.Content" xml:space="preserve">
     <value>Settings</value>
   </data>
+  <data name="NavigationViewItem_Trace.Content" xml:space="preserve">
+    <value>Trace</value>
+  </data>
   <data name="SettingsPage_ApplicationTheme.Header" xml:space="preserve">
     <value>Application theme</value>
   </data>
@@ -206,5 +209,23 @@
   </data>
   <data name="SettingsPage_WindowWidth.Header" xml:space="preserve">
     <value>Width</value>
+  </data>
+  <data name="TraceAppBarButton.Label" xml:space="preserve">
+    <value>Trace</value>
+  </data>
+  <data name="TracePage_LevelHeader.Text" xml:space="preserve">
+    <value>Level</value>
+  </data>
+  <data name="TracePage_MessageHeader.Text" xml:space="preserve">
+    <value>Message</value>
+  </data>
+  <data name="TracePage_NoHeader.Text" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="TracePage_TimestampHeader.Text" xml:space="preserve">
+    <value>Timestamp</value>
+  </data>
+  <data name="TracePage_Title.Text" xml:space="preserve">
+    <value>Trace Page</value>
   </data>
 </root>
