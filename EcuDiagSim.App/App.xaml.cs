@@ -1,11 +1,21 @@
+using System;
+using System.Diagnostics;
+using System.Threading;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using EcuDiagSim.App.Interfaces;
 using EcuDiagSim.App.Services;
 using EcuDiagSim.App.ViewModels;
 using EcuDiagSim.App.Views;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.UI.Xaml;
+using Serilog;
+using Serilog.Core;
+using Serilog.Debugging;
+using Serilog.Events;
+using UnhandledExceptionEventArgs = Microsoft.UI.Xaml.UnhandledExceptionEventArgs;
+
 
 //https://damienaicheh.github.io/uwp/2018/07/23/how-to-display-a-grouped-list-in-uwp-en
 //https://stackoverflow.com/questions/72697312/show-object-details-using-winui-3-0-listview-with-grouped-headers
@@ -28,14 +38,20 @@ using Microsoft.UI.Xaml;
 //https://devblogs.microsoft.com/dotnet/announcing-the-dotnet-community-toolkit-800/
 //https://devblogs.microsoft.com/dotnet/announcing-dotnet-community-toolkit-v810-preview-1/
 //https://devblogs.microsoft.com/dotnet/announcing-the-dotnet-community-toolkit-810/
+//https://medium.com/swlh/simple-event-souring-with-c-ec1eff55ee9d
+//https://www.youtube.com/@marioneugebauer501
+//https://github.com/hassanhabib/LeVent
+//https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection-guidelines
+//https://benfoster.io/blog/serilog-best-practices/
+//https://www.youtube.com/watch?v=qS-vp626H-M
+//https://stackoverflow.com/questions/52921966/unable-to-resolve-ilogger-from-microsoft-extensions-logging
 
 namespace EcuDiagSim.App
 {
     public partial class App : Application
     {
-        public static MainWindow MainWindow { get; private set; }
-
         private readonly IHost _host;
+        public static MainWindow MainWindow { get; private set; }
 
         public App()
         {
@@ -52,12 +68,19 @@ namespace EcuDiagSim.App
         protected override void OnLaunched(LaunchActivatedEventArgs args)
         {
             base.OnLaunched(args);
-            IAppActivationService appWindowService = Ioc.Default.GetRequiredService<IAppActivationService>();
+            var appWindowService = Ioc.Default.GetRequiredService<IAppActivationService>();
             appWindowService.Activate(args);
             MainWindow = Ioc.Default.GetRequiredService<MainWindow>();
+            MainWindow.Closed += (sender, eventArgs) => { _host.Dispose(); };
         }
 
         private static IHost BuildHost() => Host.CreateDefaultBuilder()
+            .ConfigureHostConfiguration(builder => builder.SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                    .AddJsonFile("appsettings.json", false, true)
+                //Next two only if need... not just now
+                //.AddJsonFile($"appsettings.json.{Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT") ?? "Production"}.json", true)
+                //.AddEnvironmentVariables()
+            )
             .ConfigureServices((context, services) =>
             {
                 _ = services
@@ -70,11 +93,29 @@ namespace EcuDiagSim.App
                     .AddSingleton<IAppActivationService, AppActivationService>()
                     .AddSingleton<IApiWithAssociatedVciService, ApiWithAssociatedVciService>()
                     .AddSingleton<IPathService, PathService>()
+                    // Views and ViewModels
                     .AddSingleton<MainWindowViewModel>()
                     .AddSingleton<SettingsPageViewModel>()
                     .AddSingleton<MainPageViewModel>()
                     .AddSingleton<MainWindow>();
             })
+            .UseSerilog((context, services, configuration) => configuration
+                .ReadFrom.Configuration(context.Configuration) //reads the appsettings.json from host
+#if DEBUG
+                .MinimumLevel.Verbose()
+#endif
+                .Enrich.FromLogContext()
+                .Enrich.With(new ThreadIdEnricher())
+            )
             .Build();
+
+        private class ThreadIdEnricher : ILogEventEnricher
+        {
+            public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
+            {
+                logEvent.AddPropertyIfAbsent(propertyFactory.CreateProperty(
+                    "ThreadId", Thread.CurrentThread.ManagedThreadId));
+            }
+        }
     }
 }

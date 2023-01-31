@@ -5,12 +5,14 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EcuDiagSim.App.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace EcuDiagSim.App.ViewModels
 {
     [ObservableObject]
     public partial class MainPageViewModel
     {
+        private readonly ILogger _logger;
         private readonly IPathService _pathService;
         private readonly IApiWithAssociatedVciService _apiWithAssociatedVciService;
 
@@ -29,8 +31,9 @@ namespace EcuDiagSim.App.ViewModels
 
         private bool CanRun { get; set; }
 
-        public MainPageViewModel(IPathService pathService, IApiWithAssociatedVciService apiWithAssociatedVciService)
+        public MainPageViewModel(ILogger<MainPageViewModel> logger, IPathService pathService, IApiWithAssociatedVciService apiWithAssociatedVciService)
         {
+            _logger = logger;
             _pathService = pathService;
             _apiWithAssociatedVciService = apiWithAssociatedVciService;
             _state = "";
@@ -110,7 +113,16 @@ namespace EcuDiagSim.App.ViewModels
             try
             {
                 State = "Is Running";
-                await Task.Delay(15000);
+                _logger.LogInformation("Writing to log");
+                int i = 0;
+                while( i < 10000)
+                {
+                    _logger.LogInformation("Writing to log");
+                    _logger.LogError("Error from Serlog sample");
+                    i++;
+                }
+                await Task.Delay(1000);
+                
             }
             finally
             {
