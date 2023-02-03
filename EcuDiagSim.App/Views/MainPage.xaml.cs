@@ -25,7 +25,6 @@ namespace EcuDiagSim.App.Views
     public sealed partial class MainPage : Page
     {
         public Serilog.ILogger MainSink;
-        private ItemsRepeaterLogBroker _logBroker;
 
         public MainPage()
         {
@@ -34,7 +33,7 @@ namespace EcuDiagSim.App.Views
 
             App.Current.Resources.TryGetValue("DefaultTextForegroundThemeBrush", out object defaultTextForegroundBrush);
 
-            _logBroker = new ItemsRepeaterLogBroker(
+            var logBroker = new ItemsRepeaterLogBroker(
                 LogViewer,
                 LogScrollViewer,
                 new EmojiLogViewModelBuilder((defaultTextForegroundBrush as SolidColorBrush)?.Color)
@@ -65,13 +64,13 @@ namespace EcuDiagSim.App.Views
 
             var winUi3Sink= new LoggerConfiguration()
                 .WriteTo.Logger(MainSink)
-                .WriteTo.WinUi3Control(_logBroker)
+                .WriteTo.WinUi3Control(logBroker)
                 .CreateLogger();
 
             //Serilog ILogger assign to MS ILogger
             ViewModel.Logger = new SerilogLoggerFactory(winUi3Sink).CreateLogger<MainWindow>(); 
             
-            _logBroker.IsAutoScrollOn = false;
+            logBroker.IsAutoScrollOn = true;
         }
 
         public MainPageViewModel ViewModel { get; }
@@ -117,9 +116,5 @@ namespace EcuDiagSim.App.Views
             ViewModel.Logger = new SerilogLoggerFactory(MainSink).CreateLogger<MainWindow>();
         }
 
-        private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
-        {
-           // logtest.Error("fooFoo");
-        }
     }
 }
