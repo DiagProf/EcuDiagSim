@@ -1,6 +1,7 @@
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Serilog.Sinks.WinUi3;
 using System;
 using Windows.Graphics;
 using WinRT.Interop;

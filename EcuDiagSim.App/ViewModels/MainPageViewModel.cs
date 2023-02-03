@@ -1,20 +1,26 @@
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EcuDiagSim.App.Interfaces;
 using Microsoft.Extensions.Logging;
+using Serilog.Formatting.Display;
+using Serilog.Formatting;
 
 namespace EcuDiagSim.App.ViewModels
 {
     [ObservableObject]
     public partial class MainPageViewModel
     {
-        private readonly ILogger _logger;
+        public ILogger Logger; //public  is a hack to dynamically use the winui3 sink
         private readonly IPathService _pathService;
         private readonly IApiWithAssociatedVciService _apiWithAssociatedVciService;
+        private CancellationTokenSource _cts = new CancellationTokenSource();
+        private CancellationToken _ct;
 
         [ObservableProperty] 
         [NotifyCanExecuteChangedFor(nameof(StopCommand))]
@@ -33,7 +39,7 @@ namespace EcuDiagSim.App.ViewModels
 
         public MainPageViewModel(ILogger<MainPageViewModel> logger, IPathService pathService, IApiWithAssociatedVciService apiWithAssociatedVciService)
         {
-            _logger = logger;
+            Logger = logger;
             _pathService = pathService;
             _apiWithAssociatedVciService = apiWithAssociatedVciService;
             _state = "";
@@ -109,33 +115,40 @@ namespace EcuDiagSim.App.ViewModels
         [RelayCommand(AllowConcurrentExecutions = false, CanExecute = nameof(CanRun))]
         private async Task StartAsync()
         {
+            _cts = new CancellationTokenSource();
             IsRunning = true;
             try
             {
                 State = "Is Running";
-                _logger.LogInformation("Writing to log");
-                int i = 0;
-                while( i < 10000)
+
+                while ( !_cts.IsCancellationRequested)
                 {
-                    _logger.LogInformation("Writing to log");
-                    _logger.LogError("Error from Serlog sample");
-                    i++;
+                    Logger.LogInformation("Starting the ECU simulation");
+                    Logger.LogError("World{DateTime}", DateTime.Now);
+                    try
+                    {
+                        await Task.Delay(1000,_cts.Token);
+                    }
+                    catch ( TaskCanceledException e )
+                    {
+                        break;
+                    }
                 }
-                await Task.Delay(1000);
-                
+
+                Logger.LogInformation("ECU simulation finished");
             }
             finally
             {
                 IsRunning = false;
+                State = "Is Stopping";
+                _cts.Dispose();
             }
         }
 
         [RelayCommand(AllowConcurrentExecutions = false, CanExecute = nameof(IsRunning))]
         private async Task StopAsync()
         {
-            IsRunning = false;
-            State = "Is Stopping";
-            await Task.Delay(43);
+            _cts.Cancel();
         }
     }
 }

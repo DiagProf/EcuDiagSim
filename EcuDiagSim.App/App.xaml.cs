@@ -1,7 +1,9 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Channels;
 using CommunityToolkit.Mvvm.DependencyInjection;
+using EcuDiagSim.App.Helpers;
 using EcuDiagSim.App.Interfaces;
 using EcuDiagSim.App.Services;
 using EcuDiagSim.App.ViewModels;
@@ -45,6 +47,11 @@ using UnhandledExceptionEventArgs = Microsoft.UI.Xaml.UnhandledExceptionEventArg
 //https://benfoster.io/blog/serilog-best-practices/
 //https://www.youtube.com/watch?v=qS-vp626H-M
 //https://stackoverflow.com/questions/52921966/unable-to-resolve-ilogger-from-microsoft-extensions-logging
+//https://stackoverflow.com/questions/1594357/wpf-how-to-use-2-converters-in-1-binding
+//https://stackoverflow.com/questions/71350624/serilog-ilogger-to-microsoft-ilogger
+//https://stackoverflow.com/questions/65443870/can-a-serilog-ilogger-be-converted-to-a-microsoft-extensions-logging-ilogger
+//https://stackoverflow.com/questions/35567814/is-it-possible-to-display-serilog-log-in-the-programs-gui
+//https://stackoverflow.com/questions/73262877/channels-is-it-possible-to-broadcast-receive-same-message-by-multiple-consumers
 
 namespace EcuDiagSim.App
 {
@@ -57,6 +64,7 @@ namespace EcuDiagSim.App
         {
             InitializeComponent();
             UnhandledException += App_UnhandledException;
+
             _host = BuildHost();
             Ioc.Default.ConfigureServices(_host.Services);
         }
@@ -99,13 +107,16 @@ namespace EcuDiagSim.App
                     .AddSingleton<MainPageViewModel>()
                     .AddSingleton<MainWindow>();
             })
-            .UseSerilog((context, services, configuration) => configuration
-                .ReadFrom.Configuration(context.Configuration) //reads the appsettings.json from host
+            .UseSerilog((context, services, configuration) =>
+                {
+                    configuration
+                        .ReadFrom.Configuration(context.Configuration) //reads the appsettings.json from host
 #if DEBUG
-                .MinimumLevel.Verbose()
+                        .MinimumLevel.Verbose()
 #endif
-                .Enrich.FromLogContext()
-                .Enrich.With(new ThreadIdEnricher())
+                        .Enrich.FromLogContext()
+                        .Enrich.With(new ThreadIdEnricher());
+                }
             )
             .Build();
 
