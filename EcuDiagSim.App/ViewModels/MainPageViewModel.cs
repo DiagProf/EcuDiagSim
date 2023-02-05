@@ -10,6 +10,7 @@ using EcuDiagSim.App.Interfaces;
 using Microsoft.Extensions.Logging;
 using Serilog.Formatting.Display;
 using Serilog.Formatting;
+using Serilog.Core;
 
 namespace EcuDiagSim.App.ViewModels
 {
@@ -17,6 +18,7 @@ namespace EcuDiagSim.App.ViewModels
     public partial class MainPageViewModel
     {
         public ILogger Logger; //public  is a hack to dynamically use the winui3 sink
+        public ILoggerFactory LoggerFactory;
         private readonly IPathService _pathService;
         private readonly IApiWithAssociatedVciService _apiWithAssociatedVciService;
         private CancellationTokenSource _cts = new CancellationTokenSource();
@@ -37,9 +39,10 @@ namespace EcuDiagSim.App.ViewModels
 
         private bool CanRun { get; set; }
 
-        public MainPageViewModel(ILogger<MainPageViewModel> logger, IPathService pathService, IApiWithAssociatedVciService apiWithAssociatedVciService)
+        public MainPageViewModel(ILoggerFactory loggerFactory, IPathService pathService, IApiWithAssociatedVciService apiWithAssociatedVciService)
         {
-            Logger = logger;
+            Logger = loggerFactory.CreateLogger<MainPageViewModel>();
+            LoggerFactory = loggerFactory;
             _pathService = pathService;
             _apiWithAssociatedVciService = apiWithAssociatedVciService;
             _state = "";
@@ -121,10 +124,23 @@ namespace EcuDiagSim.App.ViewModels
             {
                 State = "Is Running";
 
+                Logger.LogInformation("Starting the ECU simulation");
+                
+                (string ApiName, string VciName)? vciOnApis = _apiWithAssociatedVciService.LoadVciOnApiSettings();
+                if (vciOnApis != null)
+                {
+                    await EcuDiagSimManagerFactory.Create(LoggerFactory, _cts, _luaWorkingDirectory,
+                        vciOnApis.GetValueOrDefault().ApiName,
+                        vciOnApis.GetValueOrDefault().VciName);
+                }
+
                 while ( !_cts.IsCancellationRequested)
                 {
-                    Logger.LogInformation("Starting the ECU simulation");
-                    Logger.LogError("World{DateTime}", DateTime.Now);
+                    //Logger.LogInformation("running");
+
+                   
+
+                   
                     try
                     {
                         await Task.Delay(1000,_cts.Token);

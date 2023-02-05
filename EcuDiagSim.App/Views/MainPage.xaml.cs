@@ -68,8 +68,9 @@ namespace EcuDiagSim.App.Views
                 .CreateLogger();
 
             //Serilog ILogger assign to MS ILogger
+            ViewModel.LoggerFactory = new SerilogLoggerFactory(winUi3Sink);
             ViewModel.Logger = new SerilogLoggerFactory(winUi3Sink).CreateLogger<MainWindow>(); 
-            
+
             logBroker.IsAutoScrollOn = true;
         }
 

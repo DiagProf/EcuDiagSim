@@ -11,6 +11,7 @@ using EcuDiagSim.App.Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Serilog;
 using Serilog.Core;
@@ -52,6 +53,7 @@ using UnhandledExceptionEventArgs = Microsoft.UI.Xaml.UnhandledExceptionEventArg
 //https://stackoverflow.com/questions/65443870/can-a-serilog-ilogger-be-converted-to-a-microsoft-extensions-logging-ilogger
 //https://stackoverflow.com/questions/35567814/is-it-possible-to-display-serilog-log-in-the-programs-gui
 //https://stackoverflow.com/questions/73262877/channels-is-it-possible-to-broadcast-receive-same-message-by-multiple-consumers
+//https://github.com/microsoft/Windows-iotcore-samples/tree/master/Samples/SerialUART/CS
 
 namespace EcuDiagSim.App
 {
@@ -69,8 +71,9 @@ namespace EcuDiagSim.App
             Ioc.Default.ConfigureServices(_host.Services);
         }
 
-        private void App_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        private void App_UnhandledException(object sender, UnhandledExceptionEventArgs ex)
         {
+            Ioc.Default.GetRequiredService<ILoggerFactory>().CreateLogger<App>().LogCritical(ex.Message);
         }
 
         protected override void OnLaunched(LaunchActivatedEventArgs args)
