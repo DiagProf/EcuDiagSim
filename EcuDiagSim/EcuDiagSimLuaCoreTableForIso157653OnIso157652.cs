@@ -143,7 +143,7 @@ namespace EcuDiagSim
                                 object response = null;
                                 foreach (var testerReq in raw)
                                 {
-                                    var keySuperTrimed = (((string)testerReq.Key)).Replace("-", "").upper(); ;
+                                    var keySuperTrimed = (((string)testerReq.Key)).Replace(" ", "").upper(); ;
                                     if (request.Equals(keySuperTrimed))
                                     {
                                         _logger.LogInformation("Req:{Key}   ->  Res:{Value}", testerReq.Key, testerReq.Value);
@@ -169,7 +169,7 @@ namespace EcuDiagSim
 
 
 
-                                using ( var responseCop = Cll.StartCop(PduCopt.PDU_COPT_SENDRECV, 1, 0, StringToByteArray(responseString)) )
+                                using ( var responseCop = Cll.StartCop(PduCopt.PDU_COPT_SENDRECV, 1, 0, StringToByteArray(responseString.Replace(" ",""))) )
                                 {
                                     var resultResponse = responseCop.WaitForCopResultAsync(ct).Result;
 
