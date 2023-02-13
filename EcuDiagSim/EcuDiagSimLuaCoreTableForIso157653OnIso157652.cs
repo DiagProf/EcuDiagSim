@@ -25,13 +25,12 @@
 
 #endregion
 
+using System;
 using System.Data;
 using System.Text;
 using ISO22900.II;
 using Microsoft.Extensions.Logging;
 using Neo.IronLua;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EcuDiagSim
 {
@@ -40,7 +39,6 @@ namespace EcuDiagSim
         protected readonly string TableName;
         protected readonly LuaTable Table;
         protected readonly ComLogicalLink Cll;
-
 
         protected EcuDiagSimLuaCoreTableBase(string tableName, LuaTable table, ComLogicalLink cll)
         {
@@ -56,10 +54,97 @@ namespace EcuDiagSim
 
     internal class EcuDiagSimLuaCoreTableForIso157653OnIso157652 : EcuDiagSimLuaCoreTableBase
     {
-        public static bool IsProtocolSuitableForThisCoreTable(string protocolShortName)
+        private static bool IsLightweightHeader(LuaTable luaTable)
         {
-            return protocolShortName.Equals("ISO_15765_3_on_ISO_15765_2") || protocolShortName.Equals("ISO_14229_3_on_ISO_15765_2");
+            var requestId = (uint?)(int?)luaTable.Members["RequestId"];
+            var responseId = (uint?)(int?)luaTable.Members["ResponseId"];
+            return responseId != null && requestId != null;
         }
+
+        public new static bool IsThisClassForThisLuaTable(LuaTable luaTable)
+        {
+            if ( IsLightweightHeader(luaTable) )
+            {
+                return true;
+            }
+
+            if ( luaTable.Members["DataForComLogicalLinkCreation"] is LuaTable table )
+            {
+                //in LUA File it looks like this
+                //EcuName = {
+                //    DataForComLogicalLinkCreation = {
+                //        BusTypeShortName = "ISO_11898_2_DWCAN",
+                //        ProtocolShortName = "ISO_15765_3_on_ISO_15765_2",
+                //        DlcPinData = {
+                //            ["6"] = "HI",
+                //            ["14"] = "LOW",
+                //        },
+                //    },
+                //    Raw = ....
+                if (table.Members["ProtocolShortName"] is string protocolShortName )
+                {
+                    return protocolShortName.Equals("ISO_15765_3_on_ISO_15765_2") || protocolShortName.Equals("ISO_14229_3_on_ISO_15765_2");
+                }
+            }
+            return false;
+        }
+
+        public static DataForComLogicalLinkCreation GetDataForComLogicalLinkCreation(LuaTable luaTable)
+        {
+            DataForComLogicalLinkCreation dataSetsForCllCreation = new DataForComLogicalLinkCreation();
+            //if (IsLightweightHeader(luaTable))
+            //{
+            //    return dataSetsForCllCreation;
+            //}
+
+            if (luaTable.Members["DataForComLogicalLinkCreation"] is LuaTable table)
+            {
+                //in LUA File it looks like this
+                //EcuName = {
+                //    DataForComLogicalLinkCreation = {
+                //        BusTypeShortName = "ISO_11898_2_DWCAN",
+                //        ProtocolShortName = "ISO_15765_3_on_ISO_15765_2",
+                //        DlcPinData = {
+                //            ["6"] = "HI",
+                //            ["14"] = "LOW",
+                //        },
+                //    },
+                //    Raw = ....
+                var busTypeShortName = (string)table.Members["BusTypeShortName"];
+                var protocolShortName = (string)table.Members["ProtocolShortName"];
+                if ((LuaTable)table.Members["DlcPinData"] is LuaTable dlcPinData)
+                {
+                    Dictionary<uint, string> dlcPinDataDic = new();
+                    foreach (var pair in dlcPinData)
+                    {
+                        var success = uint.TryParse((string)(pair.Key), out var number);
+                        if (success)
+                        {
+                            dlcPinDataDic.Add(number, (string)(pair.Value));
+                        }
+                    }
+
+                    dataSetsForCllCreation = new DataForComLogicalLinkCreation()
+                    {
+                        BusTypeShortName = busTypeShortName,
+                        ProtocolShortName = protocolShortName,
+                        DlcPinData = dlcPinDataDic
+                    };
+                }
+                else
+                {
+                    //if DlcPinData is missing 
+                    dataSetsForCllCreation = new DataForComLogicalLinkCreation()
+                    {
+                        BusTypeShortName = busTypeShortName,
+                        ProtocolShortName = protocolShortName,
+                        //DlcPinData DLC is default in this case { { 6, "HI" }, { 14, "LOW" } };
+                    };
+                }
+            }
+            return dataSetsForCllCreation;
+        }
+
         private readonly ILogger _logger = ApiLibLogging.CreateLogger<EcuDiagSimLuaCoreTableForIso157653OnIso157652>();
         
         private DataForComLogicalLinkCreation? _cllCreationData;
@@ -84,7 +169,6 @@ namespace EcuDiagSim
 
         internal EcuDiagSimLuaCoreTableForIso157653OnIso157652(string tableName, LuaTable table, ComLogicalLink cll ) : base(tableName, table, cll)
         {
-
             _UniqueRespIdentifierDataSet.Insert(0, new UniqueRespIdentifierDataSet());
         }
 
@@ -122,6 +206,7 @@ namespace EcuDiagSim
 
         public override Task Connect(CancellationToken ct)
         {
+            SetupComLogicalLink();
            return new Task(() =>
             {
                 if ( Table.Members["Raw"] is LuaTable raw )
@@ -420,5 +505,6 @@ namespace EcuDiagSim
 
             return true;
         }
+
     }
 }

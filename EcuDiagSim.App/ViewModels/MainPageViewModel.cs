@@ -128,10 +128,20 @@ namespace EcuDiagSim.App.ViewModels
                 
                 (string ApiName, string VciName)? vciOnApis = _apiWithAssociatedVciService.LoadVciOnApiSettings();
                 if (vciOnApis != null)
-                {
-                    await EcuDiagSimManagerFactory.Create(LoggerFactory, _cts, _luaWorkingDirectory,
-                        vciOnApis.GetValueOrDefault().ApiName,
-                        vciOnApis.GetValueOrDefault().VciName);
+                { 
+                    
+                    using (var manager = EcuDiagSimManagerFactory.Create(LoggerFactory, _cts, _luaWorkingDirectory,
+                               vciOnApis.GetValueOrDefault().ApiName,
+                               vciOnApis.GetValueOrDefault().VciName) )
+                    {
+                        manager.EcuDiagSimManagerEventLog += Manager_EcuDiagSimManagerEventLog;
+                        if ( manager.Build() )
+                        {
+
+                            await manager.ConnectAsync(_cts.Token);
+                        }
+                       
+                    }
                 }
 
                 while ( !_cts.IsCancellationRequested)
@@ -159,6 +169,11 @@ namespace EcuDiagSim.App.ViewModels
                 State = "Is Stopping";
                 _cts.Dispose();
             }
+        }
+
+        private void Manager_EcuDiagSimManagerEventLog(object? sender, EventArgs e)
+        {
+            
         }
 
         [RelayCommand(AllowConcurrentExecutions = false, CanExecute = nameof(IsRunning))]

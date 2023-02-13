@@ -54,6 +54,9 @@ using UnhandledExceptionEventArgs = Microsoft.UI.Xaml.UnhandledExceptionEventArg
 //https://stackoverflow.com/questions/35567814/is-it-possible-to-display-serilog-log-in-the-programs-gui
 //https://stackoverflow.com/questions/73262877/channels-is-it-possible-to-broadcast-receive-same-message-by-multiple-consumers
 //https://github.com/microsoft/Windows-iotcore-samples/tree/master/Samples/SerialUART/CS
+//https://levelup.gitconnected.com/4-ways-to-implement-builder-design-pattern-in-c-dd193e07096c
+//https://methodpoet.com/builder-pattern/#Progressive_Builder_progressive_interface
+//https://dev.to/kalkwst/the-builder-pattern-in-c-5bcc
 
 namespace EcuDiagSim.App
 {
