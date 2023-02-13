@@ -125,35 +125,30 @@ namespace EcuDiagSim.App.ViewModels
                 State = "Is Running";
 
                 Logger.LogInformation("Starting the ECU simulation");
-                
+
                 (string ApiName, string VciName)? vciOnApis = _apiWithAssociatedVciService.LoadVciOnApiSettings();
-                if (vciOnApis != null)
-                { 
-                    
-                    using (var manager = EcuDiagSimManagerFactory.Create(LoggerFactory, _cts, _luaWorkingDirectory,
+                if ( vciOnApis != null )
+                {
+                    using ( var manager = EcuDiagSimManagerFactory.Create(LoggerFactory, _cts, _luaWorkingDirectory,
                                vciOnApis.GetValueOrDefault().ApiName,
                                vciOnApis.GetValueOrDefault().VciName) )
                     {
                         manager.EcuDiagSimManagerEventLog += Manager_EcuDiagSimManagerEventLog;
                         if ( manager.Build() )
                         {
-
                             await manager.ConnectAsync(_cts.Token);
                         }
-                       
                     }
                 }
 
-                while ( !_cts.IsCancellationRequested)
+                while ( !_cts.IsCancellationRequested )
                 {
                     //Logger.LogInformation("running");
 
-                   
 
-                   
                     try
                     {
-                        await Task.Delay(1000,_cts.Token);
+                        await Task.Delay(1000, _cts.Token);
                     }
                     catch ( TaskCanceledException e )
                     {
