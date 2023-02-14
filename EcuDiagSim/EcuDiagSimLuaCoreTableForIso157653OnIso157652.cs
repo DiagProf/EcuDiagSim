@@ -184,7 +184,7 @@ namespace EcuDiagSim
                 _UniqueRespIdentifierDataSet[0].CP_CanPhysReqId = _UniqueRespIdentifierDataSet[0].CP_CanRespUSDTId;
                 _UniqueRespIdentifierDataSet[0].CP_CanPhysReqExtAddr = _UniqueRespIdentifierDataSet[0].CP_CanRespUSDTExtAddr;
 
-                _UniqueRespIdentifierDataSet[0].CP_CanRespUSDTFormat = cpCanPhysReqFormat;
+                _UniqueRespIdentifierDataSet[0].CP_CanRespUSDTFormat = cpCanPhysReqFormat & 0xF;
                 _UniqueRespIdentifierDataSet[0].CP_CanRespUSDTId = cpCanPhysReqId;
                 _UniqueRespIdentifierDataSet[0].CP_CanRespUSDTExtAddr = cpCanPhysReqExtAddr;
 
@@ -192,7 +192,7 @@ namespace EcuDiagSim
                 {
                     _UniqueRespIdentifierDataSet.Add(new UniqueRespIdentifierDataSet()
                     {
-                        CP_CanRespUSDTFormat = CP_CanFuncReqFormat,
+                        CP_CanRespUSDTFormat = CP_CanFuncReqFormat & 0xF,
                         CP_CanRespUSDTId = CP_CanFuncReqId,
                         CP_CanRespUSDTExtAddr = CP_CanFuncReqExtAddr
                     });
@@ -306,32 +306,32 @@ namespace EcuDiagSim
 
             if (table.Members["CP_CanPhysReqExtAddr"] is int cpCanPhysReqExtAddr)
             {
-                _UniqueRespIdentifierDataSet[pageIndex].CP_CanPhysReqFormat = (uint)cpCanPhysReqExtAddr;
+                _UniqueRespIdentifierDataSet[pageIndex].CP_CanPhysReqExtAddr = (uint)cpCanPhysReqExtAddr;
             }
 
             if (table.Members["CP_CanRespUSDTFormat"] is int cpCanRespUsdtFormat)
             {
-                _UniqueRespIdentifierDataSet[pageIndex].CP_CanPhysReqFormat = (uint)cpCanRespUsdtFormat;
+                _UniqueRespIdentifierDataSet[pageIndex].CP_CanRespUSDTFormat = (uint)cpCanRespUsdtFormat;
             }
 
             if (table.Members["CP_CanRespUSDTExtAddr"] is int cpCanRespUsdtExtAddr)
             {
-                _UniqueRespIdentifierDataSet[pageIndex].CP_CanPhysReqFormat = (uint)cpCanRespUsdtExtAddr;
+                _UniqueRespIdentifierDataSet[pageIndex].CP_CanRespUSDTExtAddr = (uint)cpCanRespUsdtExtAddr;
             }
 
             if (table.Members["CP_CanRespUUDTFormat"] is int cpCanRespUudtFormat)
             {
-                _UniqueRespIdentifierDataSet[pageIndex].CP_CanPhysReqFormat = (uint)cpCanRespUudtFormat;
+                _UniqueRespIdentifierDataSet[pageIndex].CP_CanRespUUDTFormat = (uint)cpCanRespUudtFormat;
             }
 
             if (table.Members["CP_CanRespUUDTId"] is int cpCanRespUudtId)
             {
-                _UniqueRespIdentifierDataSet[pageIndex].CP_CanPhysReqFormat = (uint)cpCanRespUudtId;
+                _UniqueRespIdentifierDataSet[pageIndex].CP_CanRespUUDTId = (uint)cpCanRespUudtId;
             }
 
             if (table.Members["CP_CanRespUUDTExtAddr"] is int cpCanRespUudtExtAddr)
             {
-                _UniqueRespIdentifierDataSet[pageIndex].CP_CanPhysReqFormat = (uint)cpCanRespUudtExtAddr;
+                _UniqueRespIdentifierDataSet[pageIndex].CP_CanRespUUDTExtAddr = (uint)cpCanRespUudtExtAddr;
             }
 
             return true;

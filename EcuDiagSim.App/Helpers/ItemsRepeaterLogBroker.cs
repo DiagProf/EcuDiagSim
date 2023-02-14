@@ -44,7 +44,7 @@ public class ItemsRepeaterLogBroker : IWinUi3LogBroker
     {
         Logs.Insert(0, _logViewModelBuilder.Build(logEvent));
 
-        if ( Logs.Count > 40 )
+        if ( Logs.Count > 60 )
         {
             Logs.RemoveAt(Logs.Count-1);
         }
