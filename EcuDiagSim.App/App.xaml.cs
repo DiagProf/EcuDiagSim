@@ -90,7 +90,7 @@ namespace EcuDiagSim.App
 
         private static IHost BuildHost() => Host.CreateDefaultBuilder()
             .ConfigureHostConfiguration(builder => builder.SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                    .AddJsonFile("appsettings.json", false, true)
+                    .AddJsonFile("appsettings.json", true, true)
                 //Next two only if need... not just now
                 //.AddJsonFile($"appsettings.json.{Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT") ?? "Production"}.json", true)
                 //.AddEnvironmentVariables()
