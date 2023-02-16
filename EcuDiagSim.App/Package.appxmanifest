@@ -8,8 +8,8 @@
 
   <Identity
     Name="4a69ccd3-7016-45c1-8aae-989d7ac54d92"
-    Publisher="CN=DiagProf"
-    Version="1.0.0.0" />
+    Publisher="CN=Joerg Frank"
+    Version="0.0.2.0" />
 
   <Properties>
     <DisplayName>EcuDiagSim</DisplayName>
