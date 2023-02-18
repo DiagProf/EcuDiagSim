@@ -40,7 +40,7 @@ namespace EcuDiagSim
         private LuaChunk _chunk;
         private List<DataForComLogicalLinkCreation> _dataSetsForCllCreation = new();
         private LuaResult _result;
-        public List<EcuDiagSimLuaCoreTableBase> _ecuDiagSimLuaCoreTables = new();
+        public List<AbstractEcuDiagSimLuaCoreTable> _ecuDiagSimLuaCoreTables = new();
         public dynamic DynamicEnvironment => Environment;
         public LuaGlobal Environment { get; }
         public FileInfo FullLuaFileName { get; internal set; }
@@ -60,13 +60,11 @@ namespace EcuDiagSim
 
                 if ( EcuDiagSimLuaCoreTableForIso157653OnIso157652.IsThisClassForThisLuaTable(table) )
                 {
-                    var cllCreationData = EcuDiagSimLuaCoreTableForIso157653OnIso157652.GetDataForComLogicalLinkCreation(table);
-                    var resourceIds = vci.GetResourceIds(cllCreationData.BusTypeShortName, cllCreationData.ProtocolShortName,
-                        cllCreationData.DlcPinData.ToList());
+                    var cllCreationData = AbstractEcuDiagSimLuaCoreTable.GetDataForComLogicalLinkCreation(table);
+                    var resourceIds = vci.GetResourceIds(cllCreationData.BusTypeShortName, cllCreationData.ProtocolShortName, cllCreationData.DlcPinData.ToList());
                     if ( resourceIds.Any() )
                     {
-                        _ecuDiagSimLuaCoreTables.Add(new EcuDiagSimLuaCoreTableForIso157653OnIso157652(entryPointTableName, table,
-                            vci.OpenComLogicalLink(resourceIds.First())));
+                        _ecuDiagSimLuaCoreTables.Add(new EcuDiagSimLuaCoreTableForIso157653OnIso157652(this, entryPointTableName, table,vci.OpenComLogicalLink(resourceIds.First())));
                     }
                     else
                     {
@@ -90,7 +88,6 @@ namespace EcuDiagSim
             {
                 tasks.Add(coreTable.Connect(ct));
             }
-
             return tasks;
         }
 
@@ -133,6 +130,7 @@ namespace EcuDiagSim
             public Builder EnrichLuaWorld()
             {
                 _diagSimUnit.Environment["ascii"] = new Func<string, string>(LuaWorldEnricher.Ascii);
+                _diagSimUnit.Environment["sleep"] = new Action<int>(LuaWorldEnricher.Sleep);
                 return this;
             }
 

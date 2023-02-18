@@ -122,38 +122,30 @@ namespace EcuDiagSim.App.ViewModels
             IsRunning = true;
             try
             {
-                State = "Is Running";
+                State = "Loading";
 
                 Logger.LogInformation("Starting the ECU simulation");
+
 
                 (string ApiName, string VciName)? vciOnApis = _apiWithAssociatedVciService.LoadVciOnApiSettings();
                 if ( vciOnApis != null )
                 {
-                    using ( var manager = EcuDiagSimManagerFactory.Create(LoggerFactory, _cts, _luaWorkingDirectory,
-                               vciOnApis.GetValueOrDefault().ApiName,
-                               vciOnApis.GetValueOrDefault().VciName) )
+                    var simTask = await Task.Factory.StartNew((async _ =>
                     {
-                        manager.EcuDiagSimManagerEventLog += Manager_EcuDiagSimManagerEventLog;
-                        if ( manager.Build() )
+                        using ( var manager = EcuDiagSimManagerFactory.Create(LoggerFactory, _cts, _luaWorkingDirectory,
+                                   vciOnApis.GetValueOrDefault().ApiName,
+                                   vciOnApis.GetValueOrDefault().VciName) )
                         {
-                            await manager.ConnectAsync(_cts.Token);
+                            manager.EcuDiagSimManagerEventLog += Manager_EcuDiagSimManagerEventLog;
+                            if ( manager.EvaluateAndBuildSimEnv() )
+                            {
+                                await manager.ConnectAndRunAsync(_cts.Token);
+                            }
+                            manager.EcuDiagSimManagerEventLog -= Manager_EcuDiagSimManagerEventLog;
                         }
-                    }
-                }
-
-                while ( !_cts.IsCancellationRequested )
-                {
-                    //Logger.LogInformation("running");
-
-
-                    try
-                    {
-                        await Task.Delay(1000, _cts.Token);
-                    }
-                    catch ( TaskCanceledException e )
-                    {
-                        break;
-                    }
+                    }), _cts.Token, TaskCreationOptions.LongRunning | TaskCreationOptions.RunContinuationsAsynchronously);
+                    State = "Is Running";
+                    await simTask;
                 }
 
                 Logger.LogInformation("ECU simulation finished");

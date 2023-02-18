@@ -26,11 +26,14 @@
 #endregion
 
 using System.Text;
+using ISO22900.II;
 
 namespace DiagEcuSim
 {
     public static class LuaWorldEnricher
     {
+        internal static Dictionary<string, ComLogicalLink> DicCoreTableToComLogicalLink = new();
+
         public static string RemoveWhitespace(this string str)
         {
             return string.Join("", str.Split(default(string[]), StringSplitOptions.RemoveEmptyEntries));
@@ -39,7 +42,13 @@ namespace DiagEcuSim
         public static string Ascii(string s)
         {
             var bytes = Encoding.ASCII.GetBytes(s);
-            return BitConverter.ToString(bytes).Replace('-',' ');
+            return BitConverter.ToString(bytes).Replace('-', ' ');
         }
+
+        public static void Sleep(int milliseconds)
+        {
+            Thread.Sleep(milliseconds);
+        }
+
     }
 }

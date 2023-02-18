@@ -27,32 +27,17 @@
 
 using System;
 using System.Data;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
+using System.Text.RegularExpressions;
+using DiagEcuSim;
 using ISO22900.II;
 using Microsoft.Extensions.Logging;
 using Neo.IronLua;
 
 namespace EcuDiagSim
 {
-    internal abstract class EcuDiagSimLuaCoreTableBase
-    {
-        protected readonly string TableName;
-        protected readonly LuaTable Table;
-        protected readonly ComLogicalLink Cll;
-
-        protected EcuDiagSimLuaCoreTableBase(string tableName, LuaTable table, ComLogicalLink cll)
-        {
-            TableName = tableName;
-            Table = table;
-            Cll = cll;
-        }
-
-        public abstract bool SetupComLogicalLink();
-
-        public abstract Task Connect(CancellationToken ct);
-    }
-
-    internal class EcuDiagSimLuaCoreTableForIso157653OnIso157652 : EcuDiagSimLuaCoreTableBase
+    internal class EcuDiagSimLuaCoreTableForIso157653OnIso157652 : AbstractEcuDiagSimLuaCoreTable
     {
         private static bool IsLightweightHeader(LuaTable luaTable)
         {
@@ -61,7 +46,7 @@ namespace EcuDiagSim
             return responseId != null && requestId != null;
         }
 
-        public new static bool IsThisClassForThisLuaTable(LuaTable luaTable)
+        public static bool IsThisClassForThisLuaTable(LuaTable luaTable)
         {
             if ( IsLightweightHeader(luaTable) )
             {
@@ -89,65 +74,8 @@ namespace EcuDiagSim
             return false;
         }
 
-        public static DataForComLogicalLinkCreation GetDataForComLogicalLinkCreation(LuaTable luaTable)
-        {
-            DataForComLogicalLinkCreation dataSetsForCllCreation = new DataForComLogicalLinkCreation();
-            //if (IsLightweightHeader(luaTable))
-            //{
-            //    return dataSetsForCllCreation;
-            //}
-
-            if (luaTable.Members["DataForComLogicalLinkCreation"] is LuaTable table)
-            {
-                //in LUA File it looks like this
-                //EcuName = {
-                //    DataForComLogicalLinkCreation = {
-                //        BusTypeShortName = "ISO_11898_2_DWCAN",
-                //        ProtocolShortName = "ISO_15765_3_on_ISO_15765_2",
-                //        DlcPinData = {
-                //            ["6"] = "HI",
-                //            ["14"] = "LOW",
-                //        },
-                //    },
-                //    Raw = ....
-                var busTypeShortName = (string)table.Members["BusTypeShortName"];
-                var protocolShortName = (string)table.Members["ProtocolShortName"];
-                if ((LuaTable)table.Members["DlcPinData"] is LuaTable dlcPinData)
-                {
-                    Dictionary<uint, string> dlcPinDataDic = new();
-                    foreach (var pair in dlcPinData)
-                    {
-                        var success = uint.TryParse((string)(pair.Key), out var number);
-                        if (success)
-                        {
-                            dlcPinDataDic.Add(number, (string)(pair.Value));
-                        }
-                    }
-
-                    dataSetsForCllCreation = new DataForComLogicalLinkCreation()
-                    {
-                        BusTypeShortName = busTypeShortName,
-                        ProtocolShortName = protocolShortName,
-                        DlcPinData = dlcPinDataDic
-                    };
-                }
-                else
-                {
-                    //if DlcPinData is missing 
-                    dataSetsForCllCreation = new DataForComLogicalLinkCreation()
-                    {
-                        BusTypeShortName = busTypeShortName,
-                        ProtocolShortName = protocolShortName,
-                        //DlcPinData DLC is default in this case { { 6, "HI" }, { 14, "LOW" } };
-                    };
-                }
-            }
-            return dataSetsForCllCreation;
-        }
-
         private readonly ILogger _logger = ApiLibLogging.CreateLogger<EcuDiagSimLuaCoreTableForIso157653OnIso157652>();
         
-        private DataForComLogicalLinkCreation? _cllCreationData;
         private List<UniqueRespIdentifierDataSet> _UniqueRespIdentifierDataSet = new();
 
         private uint CP_CanFuncReqFormat { get; set; } = 0x05;
@@ -167,7 +95,8 @@ namespace EcuDiagSim
             public uint CP_CanRespUUDTExtAddr { get; set; } = 0x00;
         }
 
-        internal EcuDiagSimLuaCoreTableForIso157653OnIso157652(string tableName, LuaTable table, ComLogicalLink cll ) : base(tableName, table, cll)
+        internal EcuDiagSimLuaCoreTableForIso157653OnIso157652(LuaEcuDiagSimUnit luaEcuDiagSimUnit, string tableName, LuaTable table,
+            ComLogicalLink cll) : base(luaEcuDiagSimUnit, tableName, table, cll)
         {
             _UniqueRespIdentifierDataSet.Insert(0, new UniqueRespIdentifierDataSet());
         }
@@ -204,82 +133,50 @@ namespace EcuDiagSim
             return false;
         }
 
-        public override Task Connect(CancellationToken ct)
+        public override async Task Connect(CancellationToken ct)
         {
+            Ct = ct;
             SetupComLogicalLink();
-           return new Task(() =>
+            //return new Task(async ()  =>
+            // {
+            if ( Table.Members["Raw"] is LuaTable raw )
             {
-                if ( Table.Members["Raw"] is LuaTable raw )
+                Cll.Connect();
+
+                using ( var receiveCop = Cll.StartCop(PduCopt.PDU_COPT_SENDRECV, 0, -1, new byte[] {}) )
                 {
-                    Cll.Connect();
-
-                    using ( var receiveCop = Cll.StartCop(PduCopt.PDU_COPT_SENDRECV, 0, -1, new byte[] {}) )
+                    while ( !ct.IsCancellationRequested )
                     {
-                        while ( !ct.IsCancellationRequested )
+                        var result = await receiveCop.WaitForCopResultAsync(Ct).ConfigureAwait(false);
+                        if ( result.DataMsgQueue().Count > 0 )
                         {
-                            var result = receiveCop.WaitForCopResultAsync(ct).Result;
-                            if ( result.DataMsgQueue().Count > 0 )
+                            var testerRequestString = ByteAndBitUtility.BytesToHexString(result.DataMsgQueue().First().ToArray(), spacedOut: true);
+                            _logger.LogInformation("Table: {TableName}, TesterReq: {testerRequest}", TableName, testerRequestString);
+
+                            var simulatorResponseString = GetResponseString(raw, testerRequestString);
+                            if ( simulatorResponseString == null )
                             {
-                                var request = string.Join(",", result.DataMsgQueue().ConvertAll(bytes => { return BitConverter.ToString(bytes); }));
-                                _logger.LogInformation("ReceiveThread - Req: {request}", request);
-
-                                request = request.Replace("-", "" ).upper();
-
-                                object response = null;
-                                foreach (var testerReq in raw)
-                                {
-                                    var keySuperTrimed = (((string)testerReq.Key)).Replace(" ", "").upper(); ;
-                                    if (request.Equals(keySuperTrimed))
-                                    {
-                                        _logger.LogInformation("Req:{Key}   ->  Res:{Value}", testerReq.Key, testerReq.Value);
-                                        response = testerReq.Value;
-                                        break;
-                                    }
-                                }
-
-                                string responseString = "";
-
-                                if (response is string str)
-                                {
-                                    responseString = str;
-                                }
-                                else if ( response is Delegate )
-                                {
-                                    dynamic a = (Delegate)response;
-                                    string b = a("1A 01");
-                                    responseString = b;
-                                }
-
-                                _logger.LogInformation("ReceiveThread - Response:{responeStr}", responseString);
-
-
-
-                                using ( var responseCop = Cll.StartCop(PduCopt.PDU_COPT_SENDRECV, 1, 0, StringToByteArray(responseString.Replace(" ",""))) )
-                                {
-                                    var resultResponse = responseCop.WaitForCopResultAsync(ct).Result;
-
-                                    //for the information quite good... but breaks the order of how the events were fired
-                                    resultResponse.PduEventItemResults().ForEach(result =>
-                                    {
-                                        _logger.LogInformation("ReceiveThread - SendResponse: {SendResponse}",
-                                            BitConverter.ToString(result.ResultData.DataBytes));
-                                    });
-                                    resultResponse.PduEventItemErrors().ForEach(error =>
-                                    {
-                                        _logger.LogError("ReceiveThread - Error {error}", error.ErrorCodeId);
-                                    });
-                                    resultResponse.PduEventItemInfos().ForEach(info =>
-                                    {
-                                        _logger.LogInformation("ReceiveThread - Info {error}", info.InfoCode);
-                                    });
-                                }
+                                //no entry found in lua.... nothing matched
+                                //we automatically generate a default negative response
+                                simulatorResponseString = "7F " + testerRequestString.Substring(0, 2) + " 11";
                             }
+
+                            if ( simulatorResponseString.Length == 0 )
+                            {
+                                //Suppress Positive Response
+                                //we are doing nothing
+                                continue;
+                            }
+
+                            _logger.LogInformation("Table: {TableName}, SimuResp: {responseString}", TableName, simulatorResponseString);
+                            await SendAsync(simulatorResponseString);
                         }
                     }
                 }
-
-            }, ct, TaskCreationOptions.LongRunning | TaskCreationOptions.RunContinuationsAsynchronously);
+                Cll.Disconnect();
+            }
         }
+
 
         private bool TryToGetUniqueComParamsForPageIndex(int pageIndex)
         {
@@ -396,81 +293,13 @@ namespace EcuDiagSim
             return requestFunctionalId != null;
         }
 
-        //public DataForComLogicalLinkCreation? DataForComLogicalLinkCreation()
-        //{
-
-        //    if ( IsLightweightHeader() )
-        //    {
-        //        //Fix value for LightweightHeader
-        //        _cllCreationData = new DataForComLogicalLinkCreation();
-        //        return _cllCreationData;
-        //    }
-
-        //    if ( Table.Members["DataForComLogicalLinkCreation"] is LuaTable table )
-        //    {
-        //        //in LUA File it looks like this
-        //        //EcuName = {
-        //        //    DataForComLogicalLinkCreation = {
-        //        //        BusTypeShortName = "ISO_11898_2_DWCAN",
-        //        //        ProtocolShortName = "ISO_15765_3_on_ISO_15765_2",
-        //        //        DlcPinData = {
-        //        //            ["6"] = "HI",
-        //        //            ["14"] = "LOW",
-        //        //        },
-        //        //    },
-        //        //    Raw = ....
-
-        //        var busTypeShortName = (string)table.Members["BusTypeShortName"];
-        //        var protocolShortName = (string)table.Members["ProtocolShortName"];
-        //        if ( table.Members["DlcPinData"] is LuaTable dlcPinData )
-        //        {
-        //            Dictionary<uint, string> dlcPinDataDic = new();
-        //            foreach ( var pair in dlcPinData )
-        //            {
-        //                var success = uint.TryParse((string)pair.Key, out var number);
-        //                if ( !success )
-        //                {
-        //                    _logger.LogError("Attempted conversion of DlcPin '{DlcPin}' failed. Use default 0", (string)pair.Key);
-        //                }
-
-        //                dlcPinDataDic.Add(number, ((string)pair.Value).Trim());
-        //            }
-
-        //            _cllCreationData = new DataForComLogicalLinkCreation
-        //            {
-        //                BusTypeShortName = busTypeShortName,
-        //                ProtocolShortName = protocolShortName,
-        //                DlcPinData = dlcPinDataDic
-        //            };
-        //            return _cllCreationData;
-        //        }
-
-        //        //if DlcPinData is missing 
-        //        _cllCreationData = new DataForComLogicalLinkCreation
-        //        {
-        //            BusTypeShortName = busTypeShortName,
-        //            ProtocolShortName = protocolShortName
-        //            //DlcPinData DLC is default in this case { { 6, "HI" }, { 14, "LOW" } };
-        //        };
-        //        return _cllCreationData;
-        //    }
-
-        //    return null;
-        //}
 
 
         public override bool SetupComLogicalLink()
         {
+            base.SetupComLogicalLink();
             bool a = SetUniqueRespIdTablePageOneForSim();
             return a;
-        }
-
-        public static byte[] StringToByteArray(string hex)
-        {
-            return Enumerable.Range(0, hex.Length)
-                .Where(x => x % 2 == 0)
-                .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
-                .ToArray();
         }
 
         private bool SetUniqueRespIdTablePageOneForSim()

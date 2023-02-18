@@ -81,7 +81,11 @@ namespace EcuDiagSim
             EcuDiagSimManagerEventLog?.Invoke(this, e);
         }
 
-        public bool Build()
+        /// <summary>
+        /// Evaluate and Build Simulation Environment
+        /// </summary>
+        /// <returns></returns>
+        public bool EvaluateAndBuildSimEnv()
         {
             if ( !EvaluateAndBuildApiAndVci() )
             {
@@ -144,7 +148,11 @@ namespace EcuDiagSim
                 LuaEcuDiagSimUnit? luaChunk = null;
                 try
                 {
-                    luaChunk = new LuaEcuDiagSimUnit.Builder(luaPath).EnrichLuaWorld().CompileChunk().DoChunk().EntryPoints()
+                    luaChunk = new LuaEcuDiagSimUnit.Builder(luaPath)
+                        .EnrichLuaWorld()
+                        .CompileChunk()
+                        .DoChunk()
+                        .EntryPoints()
                         .Build();
                     if ( luaChunk.IsEcuDiagSimLua )
                     {
@@ -154,14 +162,14 @@ namespace EcuDiagSim
                     {
                         //This ist not a LuaEcuDiagSim Lua
                         luaChunk.Dispose();
-                        _logger.LogError("LUA with name { fullFileName} is not a EcuDiagSimLua", luaPath);
+                        _logger.LogError("LUA with name {LuaFilePath} is not a EcuDiagSimLua", luaPath);
                         return false;
                     }
                 }
                 catch ( Exception e )
                 {
                     luaChunk?.Dispose();
-                    _logger.LogCritical(e, "LUA with name {fullFileName} makes trouble", luaPath);
+                    _logger.LogCritical(e, "LUA with name {LuaFilePath} makes trouble", luaPath);
                     return false;
                 }
             }
@@ -169,7 +177,7 @@ namespace EcuDiagSim
             return ecuDiagSimUnits.Any();
         }
 
-        public async Task ConnectAsync(CancellationToken ctsToken)
+        public async Task ConnectAndRunAsync(CancellationToken ctsToken)
         {
             var tasks = new List<Task>();
             foreach ( var simUnit in ecuDiagSimUnits )
@@ -177,13 +185,7 @@ namespace EcuDiagSim
                 tasks.AddRange(simUnit.Connect(ctsToken));
             }
 
-            foreach ( var t in tasks )
-            {
-                t.Start();
-            }
-
-            var tt = Task.WhenAll(tasks.ToArray());
-            await tt;
+            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         private void ReleaseUnmanagedResources()
