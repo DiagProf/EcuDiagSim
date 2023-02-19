@@ -29,14 +29,15 @@ using DiagEcuSim;
 using ISO22900.II;
 using Microsoft.Extensions.Logging;
 using Neo.IronLua;
+using System;
 
 namespace EcuDiagSim
 {
     internal class LuaEcuDiagSimUnit : Lua
     {
         private readonly ILogger _logger = ApiLibLogging.CreateLogger<LuaEcuDiagSimUnit>();
-
-        internal readonly List<string> _entryPointTableNames = new();
+        internal ReaderWriterLockSlim _locker = new ReaderWriterLockSlim();
+        internal readonly List<string> _entryPointCoreTableNames = new();
         private LuaChunk _chunk;
         private List<DataForComLogicalLinkCreation> _dataSetsForCllCreation = new();
         private LuaResult _result;
@@ -44,7 +45,9 @@ namespace EcuDiagSim
         public dynamic DynamicEnvironment => Environment;
         public LuaGlobal Environment { get; }
         public FileInfo FullLuaFileName { get; internal set; }
-        public bool IsEcuDiagSimLua => _entryPointTableNames.Any();
+        public bool IsEcuDiagSimLua => _entryPointCoreTableNames.Any();
+
+        private DateTime lastRead = DateTime.MinValue;
 
         public LuaEcuDiagSimUnit(FileInfo fullLuaFileName)
         {
@@ -52,11 +55,11 @@ namespace EcuDiagSim
             Environment = CreateEnvironment<LuaGlobal>();
         }
 
-        public bool BuiltRrTable(Module vci)
+        public bool EvaluateAndPairingCoreTableWithComLogicalLink(Module vci)
         {
-            foreach ( var entryPointTableName in _entryPointTableNames )
+            foreach ( var entryPointCoreTableName in _entryPointCoreTableNames )
             {
-                var table = (LuaTable)Environment[entryPointTableName];
+                var table = (LuaTable)Environment[entryPointCoreTableName];
 
                 if ( EcuDiagSimLuaCoreTableForIso157653OnIso157652.IsThisClassForThisLuaTable(table) )
                 {
@@ -64,21 +67,23 @@ namespace EcuDiagSim
                     var resourceIds = vci.GetResourceIds(cllCreationData.BusTypeShortName, cllCreationData.ProtocolShortName, cllCreationData.DlcPinData.ToList());
                     if ( resourceIds.Any() )
                     {
-                        _ecuDiagSimLuaCoreTables.Add(new EcuDiagSimLuaCoreTableForIso157653OnIso157652(this, entryPointTableName, table,vci.OpenComLogicalLink(resourceIds.First())));
+                        _ecuDiagSimLuaCoreTables.Add(new EcuDiagSimLuaCoreTableForIso157653OnIso157652(this, entryPointCoreTableName, table,vci.OpenComLogicalLink(resourceIds.First())));
                     }
                     else
                     {
+                        _logger.LogError("VCI does not support the resource requested by CoreTable: {entryPointCoreTableName} (inside LUA File: {FullLuaFileName}) ", entryPointCoreTableName, FullLuaFileName.FullName);
                         return false;
                     }
                 }
                 else
                 {
+                    _logger.LogError("EcuDiagSim does not support the resource requested by CoreTable: {entryPointCoreTableName} (inside LUA File: {FullLuaFileName}) ", entryPointCoreTableName, FullLuaFileName.FullName);
                     return false;
                 }
             }
-
             return true;
         }
+
 
 
         public List<Task> Connect(CancellationToken ct)
@@ -91,22 +96,56 @@ namespace EcuDiagSim
             return tasks;
         }
 
-        public LuaTable GetLuaCoreTableByIndex(int index)
-        {
-            var a = (LuaTable)Environment[_entryPointTableNames[index]];
-
-            return (LuaTable)Environment[_entryPointTableNames[index]];
-        }
-
 
         // Define the event handlers.  
         internal void FileChanged(object source, FileSystemEventArgs e)
         {
-            if ( e.FullPath.Equals(FullLuaFileName.FullName) )
+            if ( e.ChangeType == WatcherChangeTypes.Changed )
             {
-                // Specify what is done when a file is changed.  
-                _logger.LogInformation("{Name}, with path {FullPath} has been {ChangeType}", e.Name, e.FullPath, e.ChangeType);
-                //ToDo Lua Rebuilt
+                // There is a nasty bug in the FileSystemWatch which causes the 
+                // events of the FileSystemWatcher to be called twice.
+                // There are a lot of resources about this to be found on the Internet,
+                // but there are no real solutions.
+                // Therefore, this workaround is necessary: 
+                DateTime lastWriteTime = File.GetLastWriteTime(e.FullPath);
+                if ( lastWriteTime != lastRead )
+                {
+                    lastRead = lastWriteTime;
+                    if ( e.FullPath.Equals(FullLuaFileName.FullName) )
+                    {
+                        Task.Run(() =>
+                        {
+                            //EnterWriteLock: Acquires a writer lock.
+                            //If any reader or writer locks are already held, this method will block until all locks are released.
+                            _locker.EnterWriteLock();
+                            try
+                            {
+                                // Specify what is done when a file is changed.  
+                                _logger.LogInformation("{Name} with path {FullPath} has been {ChangeType}", e.Name, e.FullPath, e.ChangeType);
+                                new Builder(this)
+                                    .EnrichLuaWorld()
+                                    .CompileChunk()
+                                    .DoChunk();
+
+                                foreach ( var coreTable in _ecuDiagSimLuaCoreTables)
+                                {
+                                    coreTable.Refresh();
+                                }
+                                // .EntryPoints()
+                                // .Build();
+                            }
+                            finally
+                            {
+                                _locker.ExitWriteLock();
+                            }
+
+                        });
+
+                    }
+
+                    
+                }
+                // else discard the (duplicated) OnChanged event
             }
         }
 
@@ -122,7 +161,7 @@ namespace EcuDiagSim
                 _diagSimUnit = new LuaEcuDiagSimUnit(fullLuaFileName);
             }
 
-            private Builder(LuaEcuDiagSimUnit self)
+            internal Builder(LuaEcuDiagSimUnit self)
             {
                 _diagSimUnit = self;
             }
@@ -158,7 +197,7 @@ namespace EcuDiagSim
                 catch ( Exception ex )
                 {
                     var luaExceptionData = LuaExceptionData.GetData(ex); // get stack trace
-                    _logger.LogCritical(ex, "LUA intern {luaExceptionData} makes trouble", luaExceptionData);
+                    _logger.LogCritical(ex, "LUA intern {luaExceptionData} makes trouble with File {fullFileName}", luaExceptionData, _diagSimUnit.FullLuaFileName.FullName);
                 }
 
                 return this;
@@ -167,7 +206,7 @@ namespace EcuDiagSim
 
             public Builder EntryPoints()
             {
-                _diagSimUnit._entryPointTableNames.Clear();
+                _diagSimUnit._entryPointCoreTableNames.Clear();
                 foreach ( var item in _diagSimUnit.Environment.Members )
                 {
                     if ( item.Value is LuaTable table )
@@ -176,7 +215,7 @@ namespace EcuDiagSim
                         {
                             if ( item2.Key.Equals("Raw") )
                             {
-                                _diagSimUnit._entryPointTableNames.Add(item.Key);
+                                _diagSimUnit._entryPointCoreTableNames.Add(item.Key);
                                 _logger.LogInformation("Name of EntryPoint {EntryPointTableName}", item.Key);
                                 break;
                             }

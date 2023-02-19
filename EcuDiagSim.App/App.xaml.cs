@@ -60,6 +60,7 @@ using UnhandledExceptionEventArgs = Microsoft.UI.Xaml.UnhandledExceptionEventArg
 //https://www.wbshelp.info/de/content/8440/1901/app/app-veroeffentlichen/microsoft-store#:~:text=Damit%20die%20App%20im%20Microsoft,den%20Button%20%22Jetzt%20registrieren%22.
 //https://developer-blog.net/programm-im-windows-store-veroeffentlichen/
 //https://blog.ndepend.com/c-async-await-explained/
+//https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/volatile
 
 namespace EcuDiagSim.App
 {

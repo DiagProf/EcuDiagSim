@@ -147,13 +147,14 @@ namespace EcuDiagSim
                 {
                     while ( !ct.IsCancellationRequested )
                     {
+                        raw = (LuaTable)Table.Members["Raw"];
                         var result = await receiveCop.WaitForCopResultAsync(Ct).ConfigureAwait(false);
                         if ( result.DataMsgQueue().Count > 0 )
                         {
                             var testerRequestString = ByteAndBitUtility.BytesToHexString(result.DataMsgQueue().First().ToArray(), spacedOut: true);
                             _logger.LogInformation("Table: {TableName}, TesterReq: {testerRequest}", TableName, testerRequestString);
 
-                            var simulatorResponseString = GetResponseString(raw, testerRequestString);
+                           var simulatorResponseString = GetResponseString(raw, testerRequestString);
                             if ( simulatorResponseString == null )
                             {
                                 //no entry found in lua.... nothing matched

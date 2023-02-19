@@ -25,30 +25,21 @@
 
 #endregion
 
-using System.ComponentModel;
 using DiagEcuSim;
 using ISO22900.II;
 using Microsoft.Extensions.Logging;
 using Neo.IronLua;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace EcuDiagSim
 {
-    internal abstract class AbstractEcuDiagSimLuaCoreTable
+    internal abstract class AbstractEcuDiagSimLuaCoreTableWithRaw : AbstractEcuDiagSimLuaCoreTable
     {
-        private readonly ILogger _logger = ApiLibLogging.CreateLogger<AbstractEcuDiagSimLuaCoreTable>();
-        protected readonly ComLogicalLink Cll;
-        protected CancellationToken Ct;
-        protected LuaTable Table;
-        private readonly LuaEcuDiagSimUnit _luaEcuDiagSimUnit;
-        protected readonly string TableName;
+        private readonly ILogger _logger = ApiLibLogging.CreateLogger<AbstractEcuDiagSimLuaCoreTableWithRaw>();
+        protected LuaTable RawTable;
 
-        protected AbstractEcuDiagSimLuaCoreTable(LuaEcuDiagSimUnit luaEcuDiagSimUnit, string tableName, LuaTable table, ComLogicalLink cll)
+        protected AbstractEcuDiagSimLuaCoreTableWithRaw(LuaEcuDiagSimUnit luaEcuDiagSimUnit, string tableName, LuaTable table, ComLogicalLink cll): base(luaEcuDiagSimUnit, tableName, table, cll)
         {
-            _luaEcuDiagSimUnit = luaEcuDiagSimUnit;
-            TableName = tableName;
-            Table = table;
-            Cll = cll;
+            RawTable = (LuaTable)((LuaTable)luaEcuDiagSimUnit.Environment[tableName]).Members["Raw"];
         }
 
         public static DataForComLogicalLinkCreation GetDataForComLogicalLinkCreation(LuaTable luaTable)
@@ -105,15 +96,12 @@ namespace EcuDiagSim
             return dataSetsForCllCreation;
         }
 
-        internal void Refresh()
-        {
-            Table = (LuaTable)_luaEcuDiagSimUnit.Environment[TableName];
-        }
-        public virtual bool SetupComLogicalLink()
-        {
-            _luaEcuDiagSimUnit.DynamicEnvironment[TableName].sendRaw = new Action<string>(SendRaw);
-            return true;
-        }
+     
+        //public virtual bool SetupComLogicalLink()
+        //{
+        //    _luaEcuDiagSimUnit.DynamicEnvironment[TableName].sendRaw = new Action<string>(SendRaw);
+        //    return true;
+        //}
 
         private void SendRaw(string simulatorResponseString)
         {
@@ -144,13 +132,13 @@ namespace EcuDiagSim
             return isOksy;
         }
 
-        public abstract Task Connect(CancellationToken ct);
+        //public abstract Task Connect(CancellationToken ct);
 
         protected string? GetResponseString(LuaTable rawTable, string testerRequest)
         {
             try
             {
-                _luaEcuDiagSimUnit._locker.EnterReadLock();
+                //_luaEcuDiagSimUnit._locker.EnterReadLock();
 
                 var testerRequestTrimmed = testerRequest.Replace(" ", "").upper();
                 object? rawTableResponseObj = null;
@@ -204,7 +192,7 @@ namespace EcuDiagSim
             }
             finally
             {
-                _luaEcuDiagSimUnit._locker.ExitReadLock();
+                //_luaEcuDiagSimUnit._locker.ExitReadLock();
             }
  
         }

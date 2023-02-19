@@ -83,6 +83,8 @@ namespace EcuDiagSim
 
         /// <summary>
         /// Evaluate and Build Simulation Environment
+        /// Evaluate if the Lua-Files are okay and the VCI can do the job and later again the same to build is relative time consuming.
+        /// That's why i evaluate and build in one step but of course in individual stages
         /// </summary>
         /// <returns></returns>
         public bool EvaluateAndBuildSimEnv()
@@ -97,21 +99,22 @@ namespace EcuDiagSim
                 return false;
             }
 
-            if ( !CreateLuaRrTableWithComLogicalLink() )
+            if ( !EvaluateAndPairingCoreTableWithComLogicalLink() )
             {
                 return false;
             }
 
-
+            RegistrationEcuDiagSimUnitsOnWatcherEvent();
+            _watcher.EnableRaisingEvents = true;
             return true;
         }
 
-        private bool CreateLuaRrTableWithComLogicalLink()
+        private bool EvaluateAndPairingCoreTableWithComLogicalLink()
         {
             var allGood = true;
             foreach ( var simUnit in ecuDiagSimUnits )
             {
-                if ( !simUnit.BuiltRrTable(vci) )
+                if ( !simUnit.EvaluateAndPairingCoreTableWithComLogicalLink(vci) )
                 {
                     simUnit.Dispose();
                     ecuDiagSimUnits.Remove(simUnit);
@@ -133,7 +136,7 @@ namespace EcuDiagSim
             {
                 _logger.LogCritical(ex, _dPduApiLibraryPath);
                 OnEcuDiagSimManagerEventLog(new EcuDiagSimManagerEventArgs()); //ToDo Event Args
-                dPduApi?.Dispose(); //Kills all VCIs too
+                dPduApi?.Dispose(); //Kills all VCIs too, so no need of vci.Dispose()
                 return false;
             }
 
@@ -177,6 +180,22 @@ namespace EcuDiagSim
             return ecuDiagSimUnits.Any();
         }
 
+
+        public void RegistrationEcuDiagSimUnitsOnWatcherEvent()
+        {
+            foreach (var simUnit in ecuDiagSimUnits)
+            {
+                _watcher.Changed += simUnit.FileChanged;
+            }
+        }
+        public void UnRegistrationEcuDiagSimUnitsOnWatcherEvent()
+        {
+            foreach (var simUnit in ecuDiagSimUnits)
+            {
+                _watcher.Changed -= simUnit.FileChanged;
+            }
+        }
+
         public async Task ConnectAndRunAsync(CancellationToken ctsToken)
         {
             var tasks = new List<Task>();
@@ -190,15 +209,19 @@ namespace EcuDiagSim
 
         private void ReleaseUnmanagedResources()
         {
-            // TODO release unmanaged resources here
             if ( ecuDiagSimUnits != null )
             {
+                //UnRegistrationEcuDiagSimUnitsOnWatcherEvent
+                foreach (var simUnit in ecuDiagSimUnits)
+                {
+                    _watcher.Changed -= simUnit.FileChanged;
+                }
+
                 foreach ( var simUnit in ecuDiagSimUnits )
                 {
                     simUnit.Dispose();
                 }
             }
-
             diagPduApiOneFactory.Dispose();
             _watcher.Dispose();
         }
