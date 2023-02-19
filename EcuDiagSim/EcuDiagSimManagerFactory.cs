@@ -30,22 +30,18 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace EcuDiagSim
 {
-    //https://codeopinion.com/cap-event-bus-outbox-pattern/
-    //https://github.com/dotnetcore/CAP/issues/275
-    public class EcuDiagSimManagerFactory : IDisposable
+    public class EcuDiagSimManagerFactory
     {
-        private static readonly Dictionary<string, EcuDiagSimManager> Cache = new();
         private static ILogger _logger = NullLogger.Instance;
 
-        public static EcuDiagSimManager Create(ILoggerFactory loggerFactory, CancellationTokenSource cts, string luaFilePath,
+        public static EcuDiagSimManager Create(ILoggerFactory? loggerFactory, string luaFilePath,
             string dPduApiLibraryPath,
             string vciModuleName = "")
         {
             ApiLibLogging.LoggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
             _logger = ApiLibLogging.CreateLogger<EcuDiagSimManagerFactory>();
             var (directoryPath, luaFilesList) = GetDirectoryAndFiles(luaFilePath);
-
-            return new EcuDiagSimManager(cts, directoryPath, luaFilesList, dPduApiLibraryPath, vciModuleName);
+            return new EcuDiagSimManager(directoryPath, luaFilesList, dPduApiLibraryPath, vciModuleName);
         }
 
         private static (string directoryPath, List<FileInfo> luaFilesList ) GetDirectoryAndFiles(string path)
@@ -74,17 +70,5 @@ namespace EcuDiagSim
 
             return (directory, luaFileInfos);
         }
-
-        #region DisposeBehavior
-
-        public void Dispose()
-        {
-            foreach ( var sys in Cache.Values.ToArray() )
-            {
-                sys.Dispose();
-            }
-        }
-
-        #endregion
     }
 }

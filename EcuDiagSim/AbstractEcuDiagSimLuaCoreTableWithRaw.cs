@@ -37,71 +37,10 @@ namespace EcuDiagSim
         private readonly ILogger _logger = ApiLibLogging.CreateLogger<AbstractEcuDiagSimLuaCoreTableWithRaw>();
         protected LuaTable RawTable;
 
-        protected AbstractEcuDiagSimLuaCoreTableWithRaw(LuaEcuDiagSimUnit luaEcuDiagSimUnit, string tableName, LuaTable table, ComLogicalLink cll): base(luaEcuDiagSimUnit, tableName, table, cll)
+        protected AbstractEcuDiagSimLuaCoreTableWithRaw(LuaEcuDiagSimUnit luaEcuDiagSimUnit, string tableName, ComLogicalLink cll): base(luaEcuDiagSimUnit, tableName, cll)
         {
-            RawTable = (LuaTable)((LuaTable)luaEcuDiagSimUnit.Environment[tableName]).Members["Raw"];
+            RawTable = (LuaTable)Table.Members["Raw"];
         }
-
-        public static DataForComLogicalLinkCreation GetDataForComLogicalLinkCreation(LuaTable luaTable)
-        {
-            // DataForComLogicalLinkCreation default data is suitable for the LightweightHeader
-            var dataSetsForCllCreation = new DataForComLogicalLinkCreation();
-
-            if ( luaTable.Members["DataForComLogicalLinkCreation"] is LuaTable table )
-            {
-                //in LUA File it looks like this
-                //EcuName = {
-                //    DataForComLogicalLinkCreation = {
-                //        BusTypeShortName = "ISO_11898_2_DWCAN",
-                //        ProtocolShortName = "ISO_15765_3_on_ISO_15765_2",
-                //        DlcPinData = {
-                //            ["6"] = "HI",
-                //            ["14"] = "LOW",
-                //        },
-                //    },
-                //    Raw = ....
-                var busTypeShortName = (string)table.Members["BusTypeShortName"];
-                var protocolShortName = (string)table.Members["ProtocolShortName"];
-                if ( (LuaTable)table.Members["DlcPinData"] is LuaTable dlcPinData )
-                {
-                    Dictionary<uint, string> dlcPinDataDic = new();
-                    foreach ( var pair in dlcPinData )
-                    {
-                        var success = uint.TryParse((string)pair.Key, out var number);
-                        if ( success )
-                        {
-                            dlcPinDataDic.Add(number, (string)pair.Value);
-                        }
-                    }
-
-                    dataSetsForCllCreation = new DataForComLogicalLinkCreation
-                    {
-                        BusTypeShortName = busTypeShortName,
-                        ProtocolShortName = protocolShortName,
-                        DlcPinData = dlcPinDataDic
-                    };
-                }
-                else
-                {
-                    //if DlcPinData is missing 
-                    dataSetsForCllCreation = new DataForComLogicalLinkCreation
-                    {
-                        BusTypeShortName = busTypeShortName,
-                        ProtocolShortName = protocolShortName
-                        //DlcPinData DLC is default in this case { { 6, "HI" }, { 14, "LOW" } };
-                    };
-                }
-            }
-
-            return dataSetsForCllCreation;
-        }
-
-     
-        //public virtual bool SetupComLogicalLink()
-        //{
-        //    _luaEcuDiagSimUnit.DynamicEnvironment[TableName].sendRaw = new Action<string>(SendRaw);
-        //    return true;
-        //}
 
         private void SendRaw(string simulatorResponseString)
         {
@@ -132,17 +71,35 @@ namespace EcuDiagSim
             return isOksy;
         }
 
-        //public abstract Task Connect(CancellationToken ct);
+        internal override void Refresh()
+        {
+            base.Refresh();
+            RawTable = (LuaTable)Table.Members["Raw"];
+            SetupAdditionalLuaFunctions();
+        }
 
-        protected string? GetResponseString(LuaTable rawTable, string testerRequest)
+        public virtual bool SetupAdditionalLuaFunctions()
         {
             try
             {
-                //_luaEcuDiagSimUnit._locker.EnterReadLock();
+                ((dynamic)Table).sendRaw = new Action<string>(SendRaw);
+            }
+            catch ( Exception e )
+            {
+                return false;
+            }
+            return true;
+        }
+
+        protected override string? GetResponseString(string testerRequest)
+        {
+            try
+            {
+                _luaEcuDiagSimUnit.RwLocker.EnterReadLock();
 
                 var testerRequestTrimmed = testerRequest.Replace(" ", "").upper();
                 object? rawTableResponseObj = null;
-                foreach (var rawTableItem in rawTable)
+                foreach (var rawTableItem in RawTable)
                 {
                     var requestKeyTrimmed = (((string)rawTableItem.Key)).Replace(" ", "").upper();
                     if (testerRequestTrimmed.Equals(requestKeyTrimmed))
@@ -154,7 +111,7 @@ namespace EcuDiagSim
 
                 if (rawTableResponseObj == null)
                 {
-                    foreach (var rawTableItem in rawTable)
+                    foreach (var rawTableItem in RawTable)
                     {
                         var requestKeyTrimmed = (((string)rawTableItem.Key)).Replace(" ", "").upper();
                         if (requestKeyTrimmed.EndsWith("*"))
@@ -185,14 +142,23 @@ namespace EcuDiagSim
                 }
                 else if (rawTableResponseObj is Delegate anonymousFunc)
                 {
-                    simulatorResponseString = ((dynamic)anonymousFunc)(testerRequest);
+                    try
+                    {
+                        simulatorResponseString = ((dynamic)anonymousFunc)(testerRequest);
+                    }
+                    catch (Exception ex)
+                    {
+                        var luaExceptionData = LuaExceptionData.GetData(ex); // get stack trace
+                        _logger.LogCritical(ex, "LUA intern {luaExceptionData} makes trouble with File {fullFileName}", luaExceptionData, _luaEcuDiagSimUnit.FullLuaFileName.FullName);
+                    }
+
                 }
 
                 return simulatorResponseString;
             }
             finally
             {
-                //_luaEcuDiagSimUnit._locker.ExitReadLock();
+                _luaEcuDiagSimUnit.RwLocker.ExitReadLock();
             }
  
         }

@@ -136,7 +136,7 @@
     <value>LUA Source</value>
   </data>
   <data name="MainPage_RunLua.Header" xml:space="preserve">
-    <value>Run LUA based ECU simulation</value>
+    <value>Run ECU simulation (Powered by NeoLua and Iso22900.II-Sharp)</value>
   </data>
   <data name="MainPage_SelectedLuaOverview.Header" xml:space="preserve">
     <value>LUA file overview</value>

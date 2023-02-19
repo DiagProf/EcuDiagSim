@@ -40,15 +40,15 @@ namespace EcuDiagSim
         protected readonly ComLogicalLink Cll;
         protected CancellationToken Ct;
         protected LuaTable Table;
-        private readonly LuaEcuDiagSimUnit _luaEcuDiagSimUnit;
+        protected readonly LuaEcuDiagSimUnit _luaEcuDiagSimUnit;
         protected readonly string TableName;
 
-        protected AbstractEcuDiagSimLuaCoreTable(LuaEcuDiagSimUnit luaEcuDiagSimUnit, string tableName, LuaTable table, ComLogicalLink cll)
+        protected AbstractEcuDiagSimLuaCoreTable(LuaEcuDiagSimUnit luaEcuDiagSimUnit, string tableName, ComLogicalLink cll)
         {
             _luaEcuDiagSimUnit = luaEcuDiagSimUnit;
             TableName = tableName;
-            Table = table;
             Cll = cll;
+            Table = (LuaTable)luaEcuDiagSimUnit.Environment[tableName];
         }
 
         public static DataForComLogicalLinkCreation GetDataForComLogicalLinkCreation(LuaTable luaTable)
@@ -105,7 +105,7 @@ namespace EcuDiagSim
             return dataSetsForCllCreation;
         }
 
-        internal void Refresh()
+        internal virtual void Refresh()
         {
             Table = (LuaTable)_luaEcuDiagSimUnit.Environment[TableName];
         }
@@ -144,69 +144,11 @@ namespace EcuDiagSim
             return isOksy;
         }
 
+        protected abstract string? GetResponseString(string testerRequestString);
+
+        public abstract bool SetupCllData();
         public abstract Task Connect(CancellationToken ct);
 
-        protected string? GetResponseString(LuaTable rawTable, string testerRequest)
-        {
-            try
-            {
-                _luaEcuDiagSimUnit._locker.EnterReadLock();
-
-                var testerRequestTrimmed = testerRequest.Replace(" ", "").upper();
-                object? rawTableResponseObj = null;
-                foreach (var rawTableItem in rawTable)
-                {
-                    var requestKeyTrimmed = (((string)rawTableItem.Key)).Replace(" ", "").upper();
-                    if (testerRequestTrimmed.Equals(requestKeyTrimmed))
-                    {
-                        rawTableResponseObj = rawTableItem.Value;
-                        break;
-                    }
-                }
-
-                if (rawTableResponseObj == null)
-                {
-                    foreach (var rawTableItem in rawTable)
-                    {
-                        var requestKeyTrimmed = (((string)rawTableItem.Key)).Replace(" ", "").upper();
-                        if (requestKeyTrimmed.EndsWith("*"))
-                        {
-                            if (testerRequestTrimmed.StartsWith(requestKeyTrimmed.Replace("*", "")))
-                            {
-                                rawTableResponseObj = rawTableItem.Value;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-
-                string simulatorResponseString = null;
-
-                if (rawTableResponseObj is string str)
-                {
-                    if (string.IsNullOrWhiteSpace(str))
-                    {
-                        //like UDS Suppress Positive Response
-                        simulatorResponseString = String.Empty;
-                    }
-                    else
-                    {
-                        simulatorResponseString = str.Trim();
-                    }
-                }
-                else if (rawTableResponseObj is Delegate anonymousFunc)
-                {
-                    simulatorResponseString = ((dynamic)anonymousFunc)(testerRequest);
-                }
-
-                return simulatorResponseString;
-            }
-            finally
-            {
-                _luaEcuDiagSimUnit._locker.ExitReadLock();
-            }
- 
-        }
+   
     }
 }

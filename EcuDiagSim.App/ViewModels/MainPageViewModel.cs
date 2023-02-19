@@ -132,7 +132,7 @@ namespace EcuDiagSim.App.ViewModels
                 {
                     var simTask = await Task.Factory.StartNew((async _ =>
                     {
-                        using ( var manager = EcuDiagSimManagerFactory.Create(LoggerFactory, _cts, _luaWorkingDirectory,
+                        using ( var manager = EcuDiagSimManagerFactory.Create(LoggerFactory, _luaWorkingDirectory,
                                    vciOnApis.GetValueOrDefault().ApiName,
                                    vciOnApis.GetValueOrDefault().VciName) )
                         {

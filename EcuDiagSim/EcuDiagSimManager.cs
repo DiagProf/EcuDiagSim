@@ -40,13 +40,16 @@ namespace EcuDiagSim
 
     public class EcuDiagSimManager : IDisposable
     {
-        private static readonly ILogger _logger = ApiLibLogging.CreateLogger<EcuDiagSimManager>();
-        private readonly CancellationTokenSource _cts;
+        private readonly ILogger _logger = ApiLibLogging.CreateLogger<EcuDiagSimManager>();
+
+        private readonly DiagPduApiOneFactory _diagPduApiOneFactory = new();
         private readonly string _dPduApiLibraryPath;
+
+        private readonly List<FileInfo> _luaFilesList;
         private readonly string _vciModuleName;
 
         // Create a new FileSystemWatcher and set its properties.  
-        private readonly FileSystemWatcher _watcher = new()
+        private readonly FileSystemWatcher _fileSysWatcher = new()
         {
             // Watch both files and subdirectories.  
             IncludeSubdirectories = true,
@@ -56,21 +59,15 @@ namespace EcuDiagSim
             Filter = "*.lua" //ToDo is upper or lower case important?
         };
 
-        private readonly DiagPduApiOneFactory diagPduApiOneFactory = new();
+        private DiagPduApiOneSysLevel? _dPduApi;
+        private readonly List<LuaEcuDiagSimUnit> _ecuDiagSimUnits = new();
+        private Module? _vci;
+        public event EventHandler? EcuDiagSimManagerEventLog;
 
-        // private string _luaDirectoryPath;
-        private readonly List<FileInfo> _luaFilesList;
-
-        private DiagPduApiOneSysLevel? dPduApi;
-        private List<LuaEcuDiagSimUnit>? ecuDiagSimUnits;
-        private Module? vci;
-        public event EventHandler EcuDiagSimManagerEventLog;
-
-        internal EcuDiagSimManager(CancellationTokenSource cts, string luaDirectoryPath, List<FileInfo> luaFilesList, string dPduApiLibraryPath,
+        internal EcuDiagSimManager(string luaDirectoryPath, List<FileInfo> luaFilesList, string dPduApiLibraryPath,
             string vciModuleName = "")
         {
-            _cts = cts;
-            _watcher.Path = luaDirectoryPath;
+            _fileSysWatcher.Path = luaDirectoryPath;
             _luaFilesList = luaFilesList;
             _dPduApiLibraryPath = dPduApiLibraryPath;
             _vciModuleName = vciModuleName;
@@ -82,9 +79,10 @@ namespace EcuDiagSim
         }
 
         /// <summary>
-        /// Evaluate and Build Simulation Environment
-        /// Evaluate if the Lua-Files are okay and the VCI can do the job and later again the same to build is relative time consuming.
-        /// That's why i evaluate and build in one step but of course in individual stages
+        ///     Evaluate and Build Simulation Environment
+        ///     Evaluate if the Lua-Files are okay and the VCI can do the job and later again the same to build is relative time
+        ///     consuming.
+        ///     That's why i evaluate and build in one step but of course in individual stages
         /// </summary>
         /// <returns></returns>
         public bool EvaluateAndBuildSimEnv()
@@ -104,20 +102,26 @@ namespace EcuDiagSim
                 return false;
             }
 
+            if ( !SetupCllData() )
+            {
+                return false;
+            }
+
             RegistrationEcuDiagSimUnitsOnWatcherEvent();
-            _watcher.EnableRaisingEvents = true;
+            _fileSysWatcher.EnableRaisingEvents = true;
             return true;
         }
+
 
         private bool EvaluateAndPairingCoreTableWithComLogicalLink()
         {
             var allGood = true;
-            foreach ( var simUnit in ecuDiagSimUnits )
+            foreach ( var simUnit in _ecuDiagSimUnits )
             {
-                if ( !simUnit.EvaluateAndPairingCoreTableWithComLogicalLink(vci) )
+                if ( !simUnit.EvaluateAndPairingCoreTableWithComLogicalLink(_vci) )
                 {
                     simUnit.Dispose();
-                    ecuDiagSimUnits.Remove(simUnit);
+                    _ecuDiagSimUnits.Remove(simUnit);
                     allGood = false;
                 }
             }
@@ -129,14 +133,14 @@ namespace EcuDiagSim
         {
             try
             {
-                dPduApi = DiagPduApiOneFactory.GetApi(DiagPduApiHelper.FullLibraryPathFormApiShortName(_dPduApiLibraryPath));
-                vci = dPduApi.ConnectVci(_vciModuleName);
+                _dPduApi = DiagPduApiOneFactory.GetApi(DiagPduApiHelper.FullLibraryPathFormApiShortName(_dPduApiLibraryPath));
+                _vci = _dPduApi.ConnectVci(_vciModuleName);
             }
             catch ( DiagPduApiException ex )
             {
                 _logger.LogCritical(ex, _dPduApiLibraryPath);
                 OnEcuDiagSimManagerEventLog(new EcuDiagSimManagerEventArgs()); //ToDo Event Args
-                dPduApi?.Dispose(); //Kills all VCIs too, so no need of vci.Dispose()
+                _dPduApi?.Dispose(); //Kills all VCIs too, so no need of vci.Dispose()
                 return false;
             }
 
@@ -145,7 +149,7 @@ namespace EcuDiagSim
 
         private bool EvaluateAndBuildEcuDiagSimUnits()
         {
-            ecuDiagSimUnits = new List<LuaEcuDiagSimUnit>();
+            _ecuDiagSimUnits.Clear();
             foreach ( var luaPath in _luaFilesList )
             {
                 LuaEcuDiagSimUnit? luaChunk = null;
@@ -159,7 +163,7 @@ namespace EcuDiagSim
                         .Build();
                     if ( luaChunk.IsEcuDiagSimLua )
                     {
-                        ecuDiagSimUnits.Add(luaChunk);
+                        _ecuDiagSimUnits.Add(luaChunk);
                     }
                     else
                     {
@@ -177,29 +181,38 @@ namespace EcuDiagSim
                 }
             }
 
-            return ecuDiagSimUnits.Any();
+            return _ecuDiagSimUnits.Any();
         }
 
+
+        private bool SetupCllData()
+        {
+            var allGood = true;
+            foreach ( var simUnit in _ecuDiagSimUnits )
+            {
+                if ( !simUnit.SetupCllData() )
+                {
+                    simUnit.Dispose();
+                    _ecuDiagSimUnits.Remove(simUnit);
+                    allGood = false;
+                }
+            }
+
+            return allGood;
+        }
 
         public void RegistrationEcuDiagSimUnitsOnWatcherEvent()
         {
-            foreach (var simUnit in ecuDiagSimUnits)
+            foreach ( var simUnit in _ecuDiagSimUnits )
             {
-                _watcher.Changed += simUnit.FileChanged;
-            }
-        }
-        public void UnRegistrationEcuDiagSimUnitsOnWatcherEvent()
-        {
-            foreach (var simUnit in ecuDiagSimUnits)
-            {
-                _watcher.Changed -= simUnit.FileChanged;
+                _fileSysWatcher.Changed += simUnit.FileChanged;
             }
         }
 
         public async Task ConnectAndRunAsync(CancellationToken ctsToken)
         {
             var tasks = new List<Task>();
-            foreach ( var simUnit in ecuDiagSimUnits )
+            foreach ( var simUnit in _ecuDiagSimUnits )
             {
                 tasks.AddRange(simUnit.Connect(ctsToken));
             }
@@ -209,21 +222,15 @@ namespace EcuDiagSim
 
         private void ReleaseUnmanagedResources()
         {
-            if ( ecuDiagSimUnits != null )
+            foreach ( var simUnit in _ecuDiagSimUnits )
             {
                 //UnRegistrationEcuDiagSimUnitsOnWatcherEvent
-                foreach (var simUnit in ecuDiagSimUnits)
-                {
-                    _watcher.Changed -= simUnit.FileChanged;
-                }
-
-                foreach ( var simUnit in ecuDiagSimUnits )
-                {
-                    simUnit.Dispose();
-                }
+                _fileSysWatcher.Changed -= simUnit.FileChanged;
+                simUnit.Dispose();
             }
-            diagPduApiOneFactory.Dispose();
-            _watcher.Dispose();
+
+            _diagPduApiOneFactory.Dispose();
+            _fileSysWatcher.Dispose();
         }
 
 

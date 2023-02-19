@@ -30,16 +30,16 @@ using ISO22900.II;
 using Microsoft.Extensions.Logging;
 using Neo.IronLua;
 using System;
+using System.Threading.Tasks;
 
 namespace EcuDiagSim
 {
     internal class LuaEcuDiagSimUnit : Lua
     {
         private readonly ILogger _logger = ApiLibLogging.CreateLogger<LuaEcuDiagSimUnit>();
-        internal ReaderWriterLockSlim _locker = new ReaderWriterLockSlim();
+        internal ReaderWriterLockSlim RwLocker = new();
         internal readonly List<string> _entryPointCoreTableNames = new();
         private LuaChunk _chunk;
-        private List<DataForComLogicalLinkCreation> _dataSetsForCllCreation = new();
         private LuaResult _result;
         public List<AbstractEcuDiagSimLuaCoreTable> _ecuDiagSimLuaCoreTables = new();
         public dynamic DynamicEnvironment => Environment;
@@ -47,7 +47,7 @@ namespace EcuDiagSim
         public FileInfo FullLuaFileName { get; internal set; }
         public bool IsEcuDiagSimLua => _entryPointCoreTableNames.Any();
 
-        private DateTime lastRead = DateTime.MinValue;
+        private DateTime _lastRead = DateTime.MinValue;
 
         public LuaEcuDiagSimUnit(FileInfo fullLuaFileName)
         {
@@ -67,7 +67,7 @@ namespace EcuDiagSim
                     var resourceIds = vci.GetResourceIds(cllCreationData.BusTypeShortName, cllCreationData.ProtocolShortName, cllCreationData.DlcPinData.ToList());
                     if ( resourceIds.Any() )
                     {
-                        _ecuDiagSimLuaCoreTables.Add(new EcuDiagSimLuaCoreTableForIso157653OnIso157652(this, entryPointCoreTableName, table,vci.OpenComLogicalLink(resourceIds.First())));
+                        _ecuDiagSimLuaCoreTables.Add(new EcuDiagSimLuaCoreTableForIso157653OnIso157652(this, entryPointCoreTableName,vci.OpenComLogicalLink(resourceIds.First())));
                     }
                     else
                     {
@@ -96,6 +96,18 @@ namespace EcuDiagSim
             return tasks;
         }
 
+        public bool SetupCllData()
+        {
+            foreach (var coreTable in _ecuDiagSimLuaCoreTables)
+            {
+                if ( !coreTable.SetupCllData() )
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
 
         // Define the event handlers.  
         internal void FileChanged(object source, FileSystemEventArgs e)
@@ -108,16 +120,16 @@ namespace EcuDiagSim
                 // but there are no real solutions.
                 // Therefore, this workaround is necessary: 
                 DateTime lastWriteTime = File.GetLastWriteTime(e.FullPath);
-                if ( lastWriteTime != lastRead )
+                if ( lastWriteTime >= (_lastRead + TimeSpan.FromMilliseconds(100) ) )
                 {
-                    lastRead = lastWriteTime;
+                    _lastRead = lastWriteTime;
                     if ( e.FullPath.Equals(FullLuaFileName.FullName) )
                     {
                         Task.Run(() =>
                         {
                             //EnterWriteLock: Acquires a writer lock.
                             //If any reader or writer locks are already held, this method will block until all locks are released.
-                            _locker.EnterWriteLock();
+                            RwLocker.EnterWriteLock();
                             try
                             {
                                 // Specify what is done when a file is changed.  
@@ -136,7 +148,7 @@ namespace EcuDiagSim
                             }
                             finally
                             {
-                                _locker.ExitWriteLock();
+                                RwLocker.ExitWriteLock();
                             }
 
                         });
@@ -149,7 +161,13 @@ namespace EcuDiagSim
             }
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            RwLocker.Dispose();
+            base.Dispose(disposing);
+        }
 
+        
         //Nested builder
         public class Builder
         {
@@ -231,5 +249,7 @@ namespace EcuDiagSim
                 return _diagSimUnit;
             }
         }
+
+
     }
 }
