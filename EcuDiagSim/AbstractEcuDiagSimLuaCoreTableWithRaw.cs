@@ -42,11 +42,11 @@ namespace EcuDiagSim
             RawTable = (LuaTable)Table.Members["Raw"];
         }
 
-        private void SendRaw(string simulatorResponseString)
-        {
-            _logger.LogInformation("Table: {TableName}, SimuResp: {responseString}", TableName, simulatorResponseString);
-            _ = SendAsync(simulatorResponseString);
-        }
+        //private void SendRaw(string simulatorResponseString)
+        //{
+        //    _logger.LogInformation("Table: {TableName}, SimuResp: {responseString}", TableName, simulatorResponseString);
+        //    _ = SendAsync(simulatorResponseString);
+        //}
 
         protected virtual async Task<bool> SendAsync(string simulatorResponseString)
         {
@@ -82,7 +82,7 @@ namespace EcuDiagSim
         {
             try
             {
-                ((dynamic)Table).sendRaw = new Action<string>(SendRaw);
+                ((dynamic)Table).sendRaw = new Action<string>(SendRawLuaCallback);
             }
             catch ( Exception e )
             {

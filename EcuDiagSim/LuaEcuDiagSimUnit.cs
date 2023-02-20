@@ -41,7 +41,7 @@ namespace EcuDiagSim
         internal readonly List<string> _entryPointCoreTableNames = new();
         private LuaChunk _chunk;
         private LuaResult _result;
-        public List<AbstractEcuDiagSimLuaCoreTable> _ecuDiagSimLuaCoreTables = new();
+        public List<AbstractEcuDiagSimLuaCoreTable> EcuDiagSimLuaCoreTables = new();
         public dynamic DynamicEnvironment => Environment;
         public LuaGlobal Environment { get; }
         public FileInfo FullLuaFileName { get; internal set; }
@@ -67,7 +67,7 @@ namespace EcuDiagSim
                     var resourceIds = vci.GetResourceIds(cllCreationData.BusTypeShortName, cllCreationData.ProtocolShortName, cllCreationData.DlcPinData.ToList());
                     if ( resourceIds.Any() )
                     {
-                        _ecuDiagSimLuaCoreTables.Add(new EcuDiagSimLuaCoreTableForIso157653OnIso157652(this, entryPointCoreTableName,vci.OpenComLogicalLink(resourceIds.First())));
+                        EcuDiagSimLuaCoreTables.Add(new EcuDiagSimLuaCoreTableForIso157653OnIso157652(this, entryPointCoreTableName,vci.OpenComLogicalLink(resourceIds.First())));
                     }
                     else
                     {
@@ -89,7 +89,7 @@ namespace EcuDiagSim
         public List<Task> Connect(CancellationToken ct)
         {
             var tasks = new List<Task>();
-            foreach ( var coreTable in _ecuDiagSimLuaCoreTables )
+            foreach ( var coreTable in EcuDiagSimLuaCoreTables )
             {
                 tasks.Add(coreTable.Connect(ct));
             }
@@ -98,7 +98,7 @@ namespace EcuDiagSim
 
         public bool SetupCllData()
         {
-            foreach (var coreTable in _ecuDiagSimLuaCoreTables)
+            foreach (var coreTable in EcuDiagSimLuaCoreTables)
             {
                 if ( !coreTable.SetupCllData() )
                 {
@@ -122,10 +122,10 @@ namespace EcuDiagSim
                 DateTime lastWriteTime = File.GetLastWriteTime(e.FullPath);
                 if ( lastWriteTime >= (_lastRead + TimeSpan.FromMilliseconds(100) ) )
                 {
-                    _lastRead = lastWriteTime;
                     if ( e.FullPath.Equals(FullLuaFileName.FullName) )
                     {
-                        Task.Run(() =>
+                        
+                        Task.Factory.StartNew(() =>
                         {
                             //EnterWriteLock: Acquires a writer lock.
                             //If any reader or writer locks are already held, this method will block until all locks are released.
@@ -133,29 +133,26 @@ namespace EcuDiagSim
                             try
                             {
                                 // Specify what is done when a file is changed.  
-                                _logger.LogInformation("{Name} with path {FullPath} has been {ChangeType}", e.Name, e.FullPath, e.ChangeType);
                                 new Builder(this)
-                                    .EnrichLuaWorld()
+                                    //.EnrichLuaWorld()
                                     .CompileChunk()
                                     .DoChunk();
 
-                                foreach ( var coreTable in _ecuDiagSimLuaCoreTables)
+                                foreach ( var coreTable in EcuDiagSimLuaCoreTables )
                                 {
                                     coreTable.Refresh();
                                 }
                                 // .EntryPoints()
                                 // .Build();
+                                _logger.LogInformation("{Name} with path {FullPath} has been {ChangeType}", e.Name, e.FullPath, e.ChangeType);
                             }
                             finally
                             {
                                 RwLocker.ExitWriteLock();
                             }
-
-                        });
-
+                        },TaskCreationOptions.LongRunning);
+                        _lastRead = lastWriteTime;
                     }
-
-                    
                 }
                 // else discard the (duplicated) OnChanged event
             }

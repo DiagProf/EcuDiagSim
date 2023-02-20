@@ -108,14 +108,15 @@ namespace EcuDiagSim
         internal virtual void Refresh()
         {
             Table = (LuaTable)_luaEcuDiagSimUnit.Environment[TableName];
+            
         }
-        public virtual bool SetupComLogicalLink()
-        {
-            _luaEcuDiagSimUnit.DynamicEnvironment[TableName].sendRaw = new Action<string>(SendRaw);
-            return true;
-        }
+        //public virtual bool SetupComLogicalLink()
+        //{
+        //    _luaEcuDiagSimUnit.DynamicEnvironment[TableName].sendRaw = new Action<string>(SendRawLuaCallback);
+        //    return true;
+        //}
 
-        private void SendRaw(string simulatorResponseString)
+        protected virtual void SendRawLuaCallback(string simulatorResponseString)
         {
             _logger.LogInformation("Table: {TableName}, SimuResp: {responseString}", TableName, simulatorResponseString);
             _ = SendAsync(simulatorResponseString);
