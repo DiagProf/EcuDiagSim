@@ -42,12 +42,6 @@ namespace EcuDiagSim
             RawTable = (LuaTable)Table.Members["Raw"];
         }
 
-        //private void SendRaw(string simulatorResponseString)
-        //{
-        //    _logger.LogInformation("Table: {TableName}, SimuResp: {responseString}", TableName, simulatorResponseString);
-        //    _ = SendAsync(simulatorResponseString);
-        //}
-
         protected virtual async Task<bool> SendAsync(string simulatorResponseString)
         {
             bool isOksy = true;

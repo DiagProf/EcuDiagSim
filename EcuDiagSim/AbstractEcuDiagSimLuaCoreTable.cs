@@ -110,11 +110,6 @@ namespace EcuDiagSim
             Table = (LuaTable)_luaEcuDiagSimUnit.Environment[TableName];
             
         }
-        //public virtual bool SetupComLogicalLink()
-        //{
-        //    _luaEcuDiagSimUnit.DynamicEnvironment[TableName].sendRaw = new Action<string>(SendRawLuaCallback);
-        //    return true;
-        //}
 
         protected virtual void SendRawLuaCallback(string simulatorResponseString)
         {
