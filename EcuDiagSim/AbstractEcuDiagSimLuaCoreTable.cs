@@ -108,7 +108,6 @@ namespace EcuDiagSim
         internal virtual void Refresh()
         {
             Table = (LuaTable)_luaEcuDiagSimUnit.Environment[TableName];
-            
         }
 
         protected virtual void SendRawLuaCallback(string simulatorResponseString)

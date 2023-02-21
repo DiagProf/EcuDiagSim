@@ -42,28 +42,28 @@ namespace EcuDiagSim
             RawTable = (LuaTable)Table.Members["Raw"];
         }
 
-        protected virtual async Task<bool> SendAsync(string simulatorResponseString)
-        {
-            bool isOksy = true;
-            using (var simulatorResponseCop = Cll.StartCop(PduCopt.PDU_COPT_SENDRECV, 1, 0, ByteAndBitUtility.BytesFromHex(simulatorResponseString)))
-            {
-                var resultResponse = await simulatorResponseCop.WaitForCopResultAsync(Ct).ConfigureAwait(false);
+        //protected virtual async Task<bool> SendAsync(string simulatorResponseString)
+        //{
+        //    bool isOksy = true;
+        //    using (var simulatorResponseCop = Cll.StartCop(PduCopt.PDU_COPT_SENDRECV, 1, 0, ByteAndBitUtility.BytesFromHex(simulatorResponseString)))
+        //    {
+        //        var resultResponse = await simulatorResponseCop.WaitForCopResultAsync(Ct).ConfigureAwait(false);
 
-                //for the information quite good... but breaks the order of how the events were fired
-                resultResponse.PduEventItemResults().ForEach(result =>
-                {
-                    _logger.LogInformation("ReceiveThread - SendResponse: {SendResponse}",
-                        ByteAndBitUtility.BytesToHexString(result.ResultData.DataBytes, spacedOut: true));
-                    isOksy = false;
-                });
-                resultResponse.PduEventItemErrors().ForEach(error => { _logger.LogError("ReceiveThread - Error {error}", error.ErrorCodeId);
-                    isOksy = false;
-                });
-                resultResponse.PduEventItemInfos().ForEach(info => { _logger.LogInformation("ReceiveThread - Info {error}", info.InfoCode); });
-            }
+        //        //for the information quite good... but breaks the order of how the events were fired
+        //        resultResponse.PduEventItemResults().ForEach(result =>
+        //        {
+        //            _logger.LogInformation("ReceiveThread - SendResponse: {SendResponse}",
+        //                ByteAndBitUtility.BytesToHexString(result.ResultData.DataBytes, spacedOut: true));
+        //            isOksy = false;
+        //        });
+        //        resultResponse.PduEventItemErrors().ForEach(error => { _logger.LogError("ReceiveThread - Error {error}", error.ErrorCodeId);
+        //            isOksy = false;
+        //        });
+        //        resultResponse.PduEventItemInfos().ForEach(info => { _logger.LogInformation("ReceiveThread - Info {error}", info.InfoCode); });
+        //    }
 
-            return isOksy;
-        }
+        //    return isOksy;
+        //}
 
         internal override void Refresh()
         {
