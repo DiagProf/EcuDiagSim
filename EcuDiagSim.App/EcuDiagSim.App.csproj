@@ -16,7 +16,7 @@
     <PackageCertificateThumbprint>02B2A67AC6BB07EE9EE58DA1174CD7B5D22A6B0A</PackageCertificateThumbprint>
     <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
     <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
-    <AppxPackageDir>C:\Users\admin\source\repos\EcuDiagSim\EcuDiagSim.App\bin\x64\Release\AppPackages\</AppxPackageDir>
+    <AppxPackageDir>C:\Users\admin\source\repos\EcuDiagSim\EcuDiagSim.App\bin\x86\Release\AppPackages\</AppxPackageDir>
     <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
     <GenerateTestArtifacts>True</GenerateTestArtifacts>
     <AppxBundle>Never</AppxBundle>
