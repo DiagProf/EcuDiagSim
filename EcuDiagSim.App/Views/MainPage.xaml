@@ -27,11 +27,11 @@
 
     <Grid Padding="8">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.05*">
+            <ColumnDefinition Width="0.025*">
             </ColumnDefinition>
-            <ColumnDefinition Width="0.9*">
+            <ColumnDefinition Width="0.95*">
             </ColumnDefinition>
-            <ColumnDefinition Width="0.05*">
+            <ColumnDefinition Width="0.025*">
             </ColumnDefinition>
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="1">
@@ -251,13 +251,9 @@
                                 </ItemsRepeater.ItemTemplate>
                             </ItemsRepeater>
                         </ScrollViewer>
-
                     </Grid>
                 </StackPanel>
             </toolkit:HeaderedContentControl>
-
         </StackPanel>
     </Grid>
-
-
 </Page>

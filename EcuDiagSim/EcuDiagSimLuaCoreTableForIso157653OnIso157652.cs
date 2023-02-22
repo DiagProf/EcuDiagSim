@@ -271,20 +271,21 @@ namespace EcuDiagSim
 
         public override bool SetupCllData()
         {
-            if (!SetupAdditionalLuaFunctions())
+            if ( !SetupAdditionalLuaFunctions() )
             {
                 return false;
             }
 
-            if (!CollectingUniqueComParams())
+            if ( !CollectingUniqueComParams() )
             {
                 return false;
             }
 
-            if (!SetUniqueRespIdTablePageOneForSim())
+            if ( !SetUniqueRespIdTablePageOneForSim() )
             {
                 return false;
             }
+
             return true;
         }
 
@@ -297,17 +298,23 @@ namespace EcuDiagSim
                 ecuUniqueRespDataPages.Add(new PduEcuUniqueRespData(dataSet.CP_CanRespUSDTId, //<- this is the UniqueRespIdentifier
                     new List<PduComParam>
                     {
-                        DiagPduApiComParamFactory.Create("CP_CanPhysReqFormat", dataSet.CP_CanPhysReqFormat, PduPt.PDU_PT_UNUM32, PduPc.PDU_PC_UNIQUE_ID),
+                        DiagPduApiComParamFactory.Create("CP_CanPhysReqFormat", dataSet.CP_CanPhysReqFormat, PduPt.PDU_PT_UNUM32,
+                            PduPc.PDU_PC_UNIQUE_ID),
                         DiagPduApiComParamFactory.Create("CP_CanPhysReqId", dataSet.CP_CanPhysReqId, PduPt.PDU_PT_UNUM32, PduPc.PDU_PC_UNIQUE_ID),
-                        DiagPduApiComParamFactory.Create("CP_CanPhysReqExtAddr", dataSet.CP_CanPhysReqExtAddr, PduPt.PDU_PT_UNUM32, PduPc.PDU_PC_UNIQUE_ID),
+                        DiagPduApiComParamFactory.Create("CP_CanPhysReqExtAddr", dataSet.CP_CanPhysReqExtAddr, PduPt.PDU_PT_UNUM32,
+                            PduPc.PDU_PC_UNIQUE_ID),
 
-                        DiagPduApiComParamFactory.Create("CP_CanRespUSDTFormat", dataSet.CP_CanRespUSDTFormat, PduPt.PDU_PT_UNUM32, PduPc.PDU_PC_UNIQUE_ID),
+                        DiagPduApiComParamFactory.Create("CP_CanRespUSDTFormat", dataSet.CP_CanRespUSDTFormat, PduPt.PDU_PT_UNUM32,
+                            PduPc.PDU_PC_UNIQUE_ID),
                         DiagPduApiComParamFactory.Create("CP_CanRespUSDTId", dataSet.CP_CanRespUSDTId, PduPt.PDU_PT_UNUM32, PduPc.PDU_PC_UNIQUE_ID),
-                        DiagPduApiComParamFactory.Create("CP_CanRespUSDTExtAddr", dataSet.CP_CanRespUSDTExtAddr, PduPt.PDU_PT_UNUM32, PduPc.PDU_PC_UNIQUE_ID),
+                        DiagPduApiComParamFactory.Create("CP_CanRespUSDTExtAddr", dataSet.CP_CanRespUSDTExtAddr, PduPt.PDU_PT_UNUM32,
+                            PduPc.PDU_PC_UNIQUE_ID),
 
-                        DiagPduApiComParamFactory.Create("CP_CanRespUUDTFormat", dataSet.CP_CanRespUUDTFormat, PduPt.PDU_PT_UNUM32, PduPc.PDU_PC_UNIQUE_ID),
+                        DiagPduApiComParamFactory.Create("CP_CanRespUUDTFormat", dataSet.CP_CanRespUUDTFormat, PduPt.PDU_PT_UNUM32,
+                            PduPc.PDU_PC_UNIQUE_ID),
                         DiagPduApiComParamFactory.Create("CP_CanRespUUDTId", dataSet.CP_CanRespUUDTId, PduPt.PDU_PT_UNUM32, PduPc.PDU_PC_UNIQUE_ID),
-                        DiagPduApiComParamFactory.Create("CP_CanRespUUDTExtAddr", dataSet.CP_CanRespUUDTExtAddr, PduPt.PDU_PT_UNUM32, PduPc.PDU_PC_UNIQUE_ID)
+                        DiagPduApiComParamFactory.Create("CP_CanRespUUDTExtAddr", dataSet.CP_CanRespUUDTExtAddr, PduPt.PDU_PT_UNUM32,
+                            PduPc.PDU_PC_UNIQUE_ID)
                     }
                 ));
             }

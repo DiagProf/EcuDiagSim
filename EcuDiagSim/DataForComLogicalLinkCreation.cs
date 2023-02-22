@@ -33,6 +33,5 @@ namespace EcuDiagSim
         public string BusTypeShortName { get; init; } = "ISO_11898_2_DWCAN";
         public string ProtocolShortName { get; init; } = "ISO_15765_3_on_ISO_15765_2";
         public Dictionary<uint, string> DlcPinData { get; init; } = new() { { 6, "HI" }, { 14, "LOW" } }; //a good default value :-)
-        
     }
 }

@@ -25,12 +25,10 @@
 
 #endregion
 
-using System.ComponentModel;
 using DiagEcuSim;
 using ISO22900.II;
 using Microsoft.Extensions.Logging;
 using Neo.IronLua;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace EcuDiagSim
 {
@@ -38,10 +36,10 @@ namespace EcuDiagSim
     {
         private readonly ILogger _logger = ApiLibLogging.CreateLogger<AbstractEcuDiagSimLuaCoreTable>();
         protected readonly ComLogicalLink Cll;
-        protected CancellationToken Ct;
-        protected LuaTable Table;
         protected readonly LuaEcuDiagSimUnit _luaEcuDiagSimUnit;
         protected readonly string TableName;
+        protected CancellationToken Ct;
+        protected LuaTable Table;
 
         protected AbstractEcuDiagSimLuaCoreTable(LuaEcuDiagSimUnit luaEcuDiagSimUnit, string tableName, ComLogicalLink cll)
         {
@@ -53,7 +51,7 @@ namespace EcuDiagSim
 
         public static DataForComLogicalLinkCreation GetDataForComLogicalLinkCreation(LuaTable luaTable)
         {
-            // DataForComLogicalLinkCreation default data is suitable for the LightweightHeader
+            // DataForComLogicalLinkCreation default is suitable for the LightweightHeader
             var dataSetsForCllCreation = new DataForComLogicalLinkCreation();
 
             if ( luaTable.Members["DataForComLogicalLinkCreation"] is LuaTable table )
@@ -118,8 +116,9 @@ namespace EcuDiagSim
 
         protected virtual async Task<bool> SendAsync(string simulatorResponseString)
         {
-            bool isOksy = true;
-            using (var simulatorResponseCop = Cll.StartCop(PduCopt.PDU_COPT_SENDRECV, 1, 0, ByteAndBitUtility.BytesFromHex(simulatorResponseString)))
+            var isOksy = true;
+            using ( var simulatorResponseCop =
+                   Cll.StartCop(PduCopt.PDU_COPT_SENDRECV, 1, 0, ByteAndBitUtility.BytesFromHex(simulatorResponseString)) )
             {
                 var resultResponse = await simulatorResponseCop.WaitForCopResultAsync(Ct).ConfigureAwait(false);
 
@@ -127,10 +126,12 @@ namespace EcuDiagSim
                 resultResponse.PduEventItemResults().ForEach(result =>
                 {
                     _logger.LogInformation("ReceiveThread - SendResponse: {SendResponse}",
-                        ByteAndBitUtility.BytesToHexString(result.ResultData.DataBytes, spacedOut: true));
+                        ByteAndBitUtility.BytesToHexString(result.ResultData.DataBytes, true));
                     isOksy = false;
                 });
-                resultResponse.PduEventItemErrors().ForEach(error => { _logger.LogError("ReceiveThread - Error {error}", error.ErrorCodeId);
+                resultResponse.PduEventItemErrors().ForEach(error =>
+                {
+                    _logger.LogError("ReceiveThread - Error {error}", error.ErrorCodeId);
                     isOksy = false;
                 });
                 resultResponse.PduEventItemInfos().ForEach(info => { _logger.LogInformation("ReceiveThread - Info {error}", info.InfoCode); });
@@ -143,7 +144,5 @@ namespace EcuDiagSim
 
         public abstract bool SetupCllData();
         public abstract Task Connect(CancellationToken ct);
-
-   
     }
 }

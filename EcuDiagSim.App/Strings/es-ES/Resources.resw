@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AppTitleBar.Text" xml:space="preserve">
-    <value>ECU diagnostic simulation with LUA</value>
+    <value>ECU diagnostic simulation (Powered by NeoLua and Iso22900.II-Sharp)</value>
   </data>
   <data name="en-US" xml:space="preserve">
     <value>English</value>

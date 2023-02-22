@@ -29,25 +29,23 @@ using DiagEcuSim;
 using ISO22900.II;
 using Microsoft.Extensions.Logging;
 using Neo.IronLua;
-using System;
-using System.Threading.Tasks;
 
 namespace EcuDiagSim
 {
     internal class LuaEcuDiagSimUnit : Lua
     {
         private readonly ILogger _logger = ApiLibLogging.CreateLogger<LuaEcuDiagSimUnit>();
-        internal ReaderWriterLockSlim RwLocker = new();
         internal readonly List<string> _entryPointCoreTableNames = new();
         private LuaChunk _chunk;
         private LuaResult _result;
+
+        private DateTime _lastRead = DateTime.MinValue;
+        internal ReaderWriterLockSlim RwLocker = new();
         public List<AbstractEcuDiagSimLuaCoreTable> EcuDiagSimLuaCoreTables = new();
         public dynamic DynamicEnvironment => Environment;
         public LuaGlobal Environment { get; }
         public FileInfo FullLuaFileName { get; internal set; }
         public bool IsEcuDiagSimLua => _entryPointCoreTableNames.Any();
-
-        private DateTime _lastRead = DateTime.MinValue;
 
         public LuaEcuDiagSimUnit(FileInfo fullLuaFileName)
         {
@@ -64,26 +62,32 @@ namespace EcuDiagSim
                 if ( EcuDiagSimLuaCoreTableForIso157653OnIso157652.IsThisClassForThisLuaTable(table) )
                 {
                     var cllCreationData = AbstractEcuDiagSimLuaCoreTable.GetDataForComLogicalLinkCreation(table);
-                    var resourceIds = vci.GetResourceIds(cllCreationData.BusTypeShortName, cllCreationData.ProtocolShortName, cllCreationData.DlcPinData.ToList());
+                    var resourceIds = vci.GetResourceIds(cllCreationData.BusTypeShortName, cllCreationData.ProtocolShortName,
+                        cllCreationData.DlcPinData.ToList());
                     if ( resourceIds.Any() )
                     {
-                        EcuDiagSimLuaCoreTables.Add(new EcuDiagSimLuaCoreTableForIso157653OnIso157652(this, entryPointCoreTableName,vci.OpenComLogicalLink(resourceIds.First())));
+                        EcuDiagSimLuaCoreTables.Add(new EcuDiagSimLuaCoreTableForIso157653OnIso157652(this, entryPointCoreTableName,
+                            vci.OpenComLogicalLink(resourceIds.First())));
                     }
                     else
                     {
-                        _logger.LogError("VCI does not support the resource requested by CoreTable: {entryPointCoreTableName} (inside LUA File: {FullLuaFileName}) ", entryPointCoreTableName, FullLuaFileName.FullName);
+                        _logger.LogError(
+                            "VCI does not support the resource requested by CoreTable: {entryPointCoreTableName} (inside LUA File: {FullLuaFileName}) ",
+                            entryPointCoreTableName, FullLuaFileName.FullName);
                         return false;
                     }
                 }
                 else
                 {
-                    _logger.LogError("EcuDiagSim does not support the resource requested by CoreTable: {entryPointCoreTableName} (inside LUA File: {FullLuaFileName}) ", entryPointCoreTableName, FullLuaFileName.FullName);
+                    _logger.LogError(
+                        "EcuDiagSim does not support the resource requested by CoreTable: {entryPointCoreTableName} (inside LUA File: {FullLuaFileName}) ",
+                        entryPointCoreTableName, FullLuaFileName.FullName);
                     return false;
                 }
             }
+
             return true;
         }
-
 
 
         public List<Task> Connect(CancellationToken ct)
@@ -93,12 +97,13 @@ namespace EcuDiagSim
             {
                 tasks.Add(coreTable.Connect(ct));
             }
+
             return tasks;
         }
 
         public bool SetupCllData()
         {
-            foreach (var coreTable in EcuDiagSimLuaCoreTables)
+            foreach ( var coreTable in EcuDiagSimLuaCoreTables )
             {
                 if ( !coreTable.SetupCllData() )
                 {
@@ -119,12 +124,11 @@ namespace EcuDiagSim
                 // There are a lot of resources about this to be found on the Internet,
                 // but there are no real solutions.
                 // Therefore, this workaround is necessary: 
-                DateTime lastWriteTime = File.GetLastWriteTime(e.FullPath);
-                if ( lastWriteTime >= (_lastRead + TimeSpan.FromMilliseconds(100) ) )
+                var lastWriteTime = File.GetLastWriteTime(e.FullPath);
+                if ( lastWriteTime >= _lastRead + TimeSpan.FromMilliseconds(100) )
                 {
                     if ( e.FullPath.Equals(FullLuaFileName.FullName) )
                     {
-                        
                         Task.Factory.StartNew(() =>
                         {
                             //EnterWriteLock: Acquires a writer lock.
@@ -142,6 +146,7 @@ namespace EcuDiagSim
                                 {
                                     coreTable.Refresh();
                                 }
+
                                 // .EntryPoints()
                                 // .Build();
                                 _logger.LogInformation("{Name} with path {FullPath} has been {ChangeType}", e.Name, e.FullPath, e.ChangeType);
@@ -150,7 +155,7 @@ namespace EcuDiagSim
                             {
                                 RwLocker.ExitWriteLock();
                             }
-                        },TaskCreationOptions.LongRunning);
+                        }, TaskCreationOptions.LongRunning);
                         _lastRead = lastWriteTime;
                     }
                 }
@@ -164,7 +169,7 @@ namespace EcuDiagSim
             base.Dispose(disposing);
         }
 
-        
+
         //Nested builder
         public class Builder
         {
@@ -212,7 +217,8 @@ namespace EcuDiagSim
                 catch ( Exception ex )
                 {
                     var luaExceptionData = LuaExceptionData.GetData(ex); // get stack trace
-                    _logger.LogCritical(ex, "LUA intern {luaExceptionData} makes trouble with File {fullFileName}", luaExceptionData, _diagSimUnit.FullLuaFileName.FullName);
+                    _logger.LogCritical(ex, "LUA intern {luaExceptionData} makes trouble with File {fullFileName}", luaExceptionData,
+                        _diagSimUnit.FullLuaFileName.FullName);
                 }
 
                 return this;
@@ -246,7 +252,5 @@ namespace EcuDiagSim
                 return _diagSimUnit;
             }
         }
-
-
     }
 }

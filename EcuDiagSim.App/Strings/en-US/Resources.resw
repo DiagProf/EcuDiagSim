@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AppTitleBar.Text" xml:space="preserve">
-    <value>ECU diagnostic simulation with LUA</value>
+    <value>ECU diagnostic simulation (Powered by NeoLua and Iso22900.II-Sharp)</value>
   </data>
   <data name="en-US" xml:space="preserve">
     <value>English</value>
@@ -133,19 +133,19 @@
     <value>Current logging section</value>
   </data>
   <data name="MainPage_LuaSource.Header" xml:space="preserve">
-    <value>LUA Source</value>
+    <value>Lua Source</value>
   </data>
   <data name="MainPage_RunLua.Header" xml:space="preserve">
-    <value>Run ECU simulation (Powered by NeoLua and Iso22900.II-Sharp)</value>
+    <value>Run ECU simulation</value>
   </data>
   <data name="MainPage_SelectedLuaOverview.Header" xml:space="preserve">
-    <value>LUA file overview</value>
+    <value>Lua file overview</value>
   </data>
   <data name="MainPage_SelectLuaFile.Content" xml:space="preserve">
-    <value>Select LUA file</value>
+    <value>Select Lua file</value>
   </data>
   <data name="MainPage_SelectLuaFolder.Content" xml:space="preserve">
-    <value>Select LUA folder</value>
+    <value>Select Lua folder</value>
   </data>
   <data name="MainPage_Start.Content" xml:space="preserve">
     <value>Start</value>

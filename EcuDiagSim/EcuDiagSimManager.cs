@@ -59,8 +59,9 @@ namespace EcuDiagSim
             Filter = "*.lua" //ToDo is upper or lower case important?
         };
 
-        private DiagPduApiOneSysLevel? _dPduApi;
         private readonly List<LuaEcuDiagSimUnit> _ecuDiagSimUnits = new();
+
+        private DiagPduApiOneSysLevel? _dPduApi;
         private Module? _vci;
         public event EventHandler? EcuDiagSimManagerEventLog;
 

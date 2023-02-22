@@ -25,7 +25,6 @@
 
 #endregion
 
-using DiagEcuSim;
 using ISO22900.II;
 using Microsoft.Extensions.Logging;
 using Neo.IronLua;
@@ -37,33 +36,11 @@ namespace EcuDiagSim
         private readonly ILogger _logger = ApiLibLogging.CreateLogger<AbstractEcuDiagSimLuaCoreTableWithRaw>();
         protected LuaTable RawTable;
 
-        protected AbstractEcuDiagSimLuaCoreTableWithRaw(LuaEcuDiagSimUnit luaEcuDiagSimUnit, string tableName, ComLogicalLink cll): base(luaEcuDiagSimUnit, tableName, cll)
+        protected AbstractEcuDiagSimLuaCoreTableWithRaw(LuaEcuDiagSimUnit luaEcuDiagSimUnit, string tableName, ComLogicalLink cll) : base(
+            luaEcuDiagSimUnit, tableName, cll)
         {
             RawTable = (LuaTable)Table.Members["Raw"];
         }
-
-        //protected virtual async Task<bool> SendAsync(string simulatorResponseString)
-        //{
-        //    bool isOksy = true;
-        //    using (var simulatorResponseCop = Cll.StartCop(PduCopt.PDU_COPT_SENDRECV, 1, 0, ByteAndBitUtility.BytesFromHex(simulatorResponseString)))
-        //    {
-        //        var resultResponse = await simulatorResponseCop.WaitForCopResultAsync(Ct).ConfigureAwait(false);
-
-        //        //for the information quite good... but breaks the order of how the events were fired
-        //        resultResponse.PduEventItemResults().ForEach(result =>
-        //        {
-        //            _logger.LogInformation("ReceiveThread - SendResponse: {SendResponse}",
-        //                ByteAndBitUtility.BytesToHexString(result.ResultData.DataBytes, spacedOut: true));
-        //            isOksy = false;
-        //        });
-        //        resultResponse.PduEventItemErrors().ForEach(error => { _logger.LogError("ReceiveThread - Error {error}", error.ErrorCodeId);
-        //            isOksy = false;
-        //        });
-        //        resultResponse.PduEventItemInfos().ForEach(info => { _logger.LogInformation("ReceiveThread - Info {error}", info.InfoCode); });
-        //    }
-
-        //    return isOksy;
-        //}
 
         internal override void Refresh()
         {
@@ -82,6 +59,7 @@ namespace EcuDiagSim
             {
                 return false;
             }
+
             return true;
         }
 
@@ -93,24 +71,24 @@ namespace EcuDiagSim
 
                 var testerRequestTrimmed = testerRequest.Replace(" ", "").upper();
                 object? rawTableResponseObj = null;
-                foreach (var rawTableItem in RawTable)
+                foreach ( var rawTableItem in RawTable )
                 {
-                    var requestKeyTrimmed = (((string)rawTableItem.Key)).Replace(" ", "").upper();
-                    if (testerRequestTrimmed.Equals(requestKeyTrimmed))
+                    var requestKeyTrimmed = ((string)rawTableItem.Key).Replace(" ", "").upper();
+                    if ( testerRequestTrimmed.Equals(requestKeyTrimmed) )
                     {
                         rawTableResponseObj = rawTableItem.Value;
                         break;
                     }
                 }
 
-                if (rawTableResponseObj == null)
+                if ( rawTableResponseObj == null )
                 {
-                    foreach (var rawTableItem in RawTable)
+                    foreach ( var rawTableItem in RawTable )
                     {
-                        var requestKeyTrimmed = (((string)rawTableItem.Key)).Replace(" ", "").upper();
-                        if (requestKeyTrimmed.EndsWith("*"))
+                        var requestKeyTrimmed = ((string)rawTableItem.Key).Replace(" ", "").upper();
+                        if ( requestKeyTrimmed.EndsWith("*") )
                         {
-                            if (testerRequestTrimmed.StartsWith(requestKeyTrimmed.Replace("*", "")))
+                            if ( testerRequestTrimmed.StartsWith(requestKeyTrimmed.Replace("*", "")) )
                             {
                                 rawTableResponseObj = rawTableItem.Value;
                                 break;
@@ -122,30 +100,30 @@ namespace EcuDiagSim
 
                 string simulatorResponseString = null;
 
-                if (rawTableResponseObj is string str)
+                if ( rawTableResponseObj is string str )
                 {
-                    if (string.IsNullOrWhiteSpace(str))
+                    if ( string.IsNullOrWhiteSpace(str) )
                     {
                         //like UDS Suppress Positive Response
-                        simulatorResponseString = String.Empty;
+                        simulatorResponseString = string.Empty;
                     }
                     else
                     {
                         simulatorResponseString = str.Trim();
                     }
                 }
-                else if (rawTableResponseObj is Delegate anonymousFunc)
+                else if ( rawTableResponseObj is Delegate anonymousFunc )
                 {
                     try
                     {
                         simulatorResponseString = ((dynamic)anonymousFunc)(testerRequest);
                     }
-                    catch (Exception ex)
+                    catch ( Exception ex )
                     {
                         var luaExceptionData = LuaExceptionData.GetData(ex); // get stack trace
-                        _logger.LogCritical(ex, "LUA intern {luaExceptionData} makes trouble with File {fullFileName}", luaExceptionData, _luaEcuDiagSimUnit.FullLuaFileName.FullName);
+                        _logger.LogCritical(ex, "LUA intern {luaExceptionData} makes trouble with File {fullFileName}", luaExceptionData,
+                            _luaEcuDiagSimUnit.FullLuaFileName.FullName);
                     }
-
                 }
 
                 return simulatorResponseString;
@@ -154,7 +132,6 @@ namespace EcuDiagSim
             {
                 _luaEcuDiagSimUnit.RwLocker.ExitReadLock();
             }
- 
         }
     }
 }

@@ -34,9 +34,7 @@ namespace EcuDiagSim
     {
         private static ILogger _logger = NullLogger.Instance;
 
-        public static EcuDiagSimManager Create(ILoggerFactory? loggerFactory, string luaFilePath,
-            string dPduApiLibraryPath,
-            string vciModuleName = "")
+        public static EcuDiagSimManager Create(ILoggerFactory? loggerFactory, string luaFilePath, string dPduApiLibraryPath, string vciModuleName = "")
         {
             ApiLibLogging.LoggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
             _logger = ApiLibLogging.CreateLogger<EcuDiagSimManagerFactory>();
