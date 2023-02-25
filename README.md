@@ -9,6 +9,7 @@ The last sentence implies that at least one native **D-PDU-API must be installed
 1. [Introduction](#introduction)
 2. [State of the work](#state-of-the-work)
 3. [Usage](#usage)
+4. [Lua file structure](#lua-file-structure)
 
 ## Introduction
 
@@ -56,12 +57,24 @@ After the start button is pressed, the Lua files are loaded and the simulation i
 
 
 
+
+
 Now you can start the a diagnostic tool. During my quick search and install I pick one that displays everything graphically but it doesn't matter, it's enough to show where the simulated ECU responses arrive. The EcuDiagSim.App also shows parts of the logging infomration (latest message at the top) so that you can see what is happening.
 
 ![](https://github.com/DiagProf/EcuDiagSim/blob/master/images/SimulationInAction.png)
 
 
 
-Finally, a picture of the hardware setup. So that everyone can imagine what the construction should look like if you want to try it out for yourself. 
+
+
+Finally, a picture of the hardware setup. So that everyone can imagine what a required hardware structure looks like.
 
 ![](https://github.com/DiagProf/EcuDiagSim/blob/master/images/HardwareSetup.png)
+
+
+
+## Lua file structure
+
+Lua files don't have a "main" or anything like that. Therefore, the application must define its own entry point. 
+
+In EcuDiagSim the content of a Lua file is assigned to a SimUnit. A SimUnit can have one or more CoreTables. The CoreTable represents, among other things, a part of the Lua file. The CoreTable is also the entry point into Lua.
