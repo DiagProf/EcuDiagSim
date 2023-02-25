@@ -44,14 +44,24 @@ Depending on how the VCI is connected to the computer, it could happen that the 
 
 
 
-Once you have selected a VCI you can go back to the main page. There you can choose between selecting only one Lua file or a folder containing Lua files (possible subfolders are also included).
+Once you have selected a VCI you can go back to the main page. There you can choose between selecting only one Lua file or a folder containing Lua files (possible subfolders are also included). To reproduce the whole example, you also need a diagnostic tester. To make this possible for most people, I have chosen a Lua simulation for EOBD, so that a free EOBD app and a cheap ELM327 can be used as a diagnostic tester to test the example. In the repository you will also find the folder LuaSimFileStore where the Lua EOBD simulation files are located. By the way, the folder is also intended to be used by anyone who wants to share their simulations. I would be pleased about active interest :-). So that it doesn't get completely wild, I have already created folders that show how I would like to have it roughly grouped.
 
 ![](https://github.com/DiagProf/EcuDiagSim/blob/master/images/SelectLuaFromEobdLuaExample.png)
 
 
 
-To reproduce the whole example, you also need a diagnostic tester. To make this possible for most people, I have chosen a Lua simulation for EOBD, so that a free EOBD app and a cheap ELM327 can be used as a diagnostic tester to test the example. In the repository you will also find the folder LuaSimFileStore where the Lua EOBD simulation files are located. By the way, the folder is also intended to be used by anyone who wants to share their simulations. I would be pleased about active interest :-). So that it doesn't get completely wild, I have already created folders that show how I would like to have it roughly grouped. 
-
-
-
 After the start button is pressed, the Lua files are loaded and the simulation is started.
+
+![](https://github.com/DiagProf/EcuDiagSim/blob/master/images/AfterStartButtonIsPressed.png)
+
+
+
+Now you can start the a diagnostic tool. During my quick search and install I pick one that displays everything graphically but it doesn't matter, it's enough to show where the simulated ECU responses arrive. The EcuDiagSim.App also shows parts of the logging infomration (latest message at the top) so that you can see what is happening.
+
+![]()
+
+
+
+Finally, a picture of the hardware setup. So that everyone can imagine what the construction should look like if you want to try it out for yourself. 
+
+[]()
