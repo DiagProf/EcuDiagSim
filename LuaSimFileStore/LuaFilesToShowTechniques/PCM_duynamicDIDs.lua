@@ -20,8 +20,9 @@ PCM = {
 		},
 	 },
 	ComParamsFromTesterPointOfView = { 
-		CP_CanPhysReqId = 0x7E0;       --  0-1FFFFFFF Functional Request-ID          
-		CP_CanRespUSDTId = 0x7E8;      --  0-1FFFFFFF Functional Request-ID          		   
+	    --only this two params is like 11-bit CANId with no extended addressing
+		CP_CanPhysReqId = 0x7E0; 
+		CP_CanRespUSDTId = 0x7E8;   		   
 	},
 	Raw = {
 		["3E 00"] = "7E 00",

@@ -1,6 +1,6 @@
 
 -- This example is only to show how a communication parameter must be set for 29bit CAN with normal addressing.
-PCM = {
+ABS = {
 	DataForComLogicalLinkCreation = {
 		BusTypeShortName = "ISO_11898_2_DWCAN",
 		ProtocolShortName = "ISO_15765_3_on_ISO_15765_2",
