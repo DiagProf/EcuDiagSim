@@ -61,12 +61,28 @@ In EcuDiagSim the content of a Lua file is assigned to a SimUnit. A SimUnit can 
 
 ![](https://github.com/DiagProf/EcuDiagSim/blob/master/images/ExplanationOfCoreTable.png)
 
-The name of the CoreTable in the image "YourNameForTheECU" can be freely chosen but must be unique if there are 2 CoreTables in one file. 
+The name of the CoreTable in the image "YourNameForTheECU" can be freely chosen but must be unique if there are more than one CoreTables in one file. 
 
-I would like to say at this point that 2 CoreTables in one file means 2 ECU simulations in one file. This is possible but not the preferred way. Why it is supported at all is the following reason. Imagine you simulate a body control unit and an engine control unit. Now what happens in the real vehicle is... If a VIN is written to the body control unit via diagnostics, it is distributed internally in the vehicle via CAN. In the engine control unit, this VIN can be read again via a diagnostic service and the VIN has changed. If you want to simulate something like this, both simulations must be in a Lua environment. However, this is rarely needed, so it is better to have one file per ECU simulation. 
+I would like to say at this point that e.g. 2 CoreTables in one file means 2 ECU simulations in one file. This is possible but not the preferred way. Why it is supported at all is the following reason. Imagine you simulate a body control unit and an engine control unit. What could now happens in the real vehicle is... If a VIN is written to the body control unit via diagnostics, it is distributed internally in the vehicle via CAN. In the engine control unit, this VIN can be read again via a diagnostic service and the VIN has changed. If you want to simulate something like this, both simulations must be in a Lua environment. However, this is rarely needed, so it is better to have one file per ECU simulation. 
 
 
 
 Now a few words about the communication settings. The idea here is that you can take them from the tester data. And they are based on the ISO22900-2. Right away you don't need to worry about it if you don't understand it straight away, 95% of them can be copied over and over again and you only need to change the places with the CAN IDs. Communication settings consist of 2 LuaTables. The LuaTable named "DataForComLogicalLinkCreation" is exactly what the name says, the data with which the ComLogicalLink is created which simulates the ECU. The key and values also come from ISO22900-2. The LuaTable named "ComParamsFromTesterPointOfView" contains the parameters with which the transport protocol is setup. As the name suggests, the values are specified from the viewpoint of the diagnostic tester. The user does not notice that an internal magic shakes the values a bit. Saving the internal magic and setting the parameters right in Lua would overwhelm most users, so it's better to take a tester's perspective. The key and values also come from ISO22900-2 again. 
 
 ![](https://github.com/DiagProf/EcuDiagSim/blob/master/images/CommunicationSettings.png)
+
+
+
+The [project](https://github.com/AVL-DiTEST-DiagDev/car-simulator) that also uses Lua for simulation has a very lightweight communication setup. 
+
+```lua
+PCM = {
+    RequestId = 0x7E0,
+    ResponseId = 0x7E8,
+    RequestFunctionalId = 0x7DF,
+}
+```
+
+EcuDiagSim supports these as well, but it only represents a specific facet of the ISO-TP. This is... High speed CAN with 11-bit CANId with no extended addressing on pins 6 and 14. However, it has to be said that this is a very common setup of the transport layer is.
+
+[Here](https://github.com/DiagProf/EcuDiagSim/tree/master/LuaSimFileStore/LuaFilesToShowTechniques) are examples with different communication settings.
