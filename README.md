@@ -32,10 +32,22 @@ At the Momant... Clone the repository and set the EcuDiagSim.App project as the 
 
 *If someone tells me how to build an application that runs without a certificate, I will publish the executable here. So don't hesitate to tell me how to configure this project to get an executable EXE (without the certificate hocus-pocus) out of it.*
 
-After starting the application you should see this. Go to settings and select a VCI (I assume that you have a D-PDU-API capable VCI and everything is already installed.) Depending on how the VCI is connected to the computer, it could happen that the firewall opens and you have to allow the connection, especially for VCIs with an Ethernet connection. Usually the application has to be restarted afterwards. 
-
-
+After starting the application you should see this. Go to settings and select a VCI (I assume that you have a D-PDU-API capable VCI and everything is already installed.) 
 
 ![](https://github.com/DiagProf/EcuDiagSim/blob/master/images/GoToSettings.png)
 
 ![](https://github.com/DiagProf/EcuDiagSim/blob/master/images/KlickNotSelected_ToSelectVCI.png)
+
+
+
+Depending on how the VCI is connected to the computer, it could happen that the firewall opens and you have to allow the connection, especially for VCIs with an Ethernet connection. Usually the application has to be restarted afterwards.
+
+
+
+Once you have selected a VCI you can go back to the main page. There you can choose between selecting only one Lua file or a folder containing Lua files (possible subfolders are also included).
+
+![]()
+
+
+
+To reproduce the whole example, you also need a diagnostic tester. To make this possible for most people, I have chosen a Lua simulation for EOBD, so that a free EOBD app and a cheap ELM327 can be used as a diagnostic tester to test the example. In the repository you will also find the folder LuaSimFileStore where the Lua EOBD simulation files are located. By the way, the folder is also intended to be used by anyone who wants to share their simulations. I would be pleased about active interest :-). So that it doesn't get completely wild, I have already created folders that show how I would like to have it roughly grouped. 
