@@ -58,7 +58,7 @@ After the start button is pressed, the Lua files are loaded and the simulation i
 
 Now you can start the a diagnostic tool. During my quick search and install I pick one that displays everything graphically but it doesn't matter, it's enough to show where the simulated ECU responses arrive. The EcuDiagSim.App also shows parts of the logging infomration (latest message at the top) so that you can see what is happening.
 
-![]()
+![](https://github.com/DiagProf/EcuDiagSim/blob/master/images/SimulationInAction.png)
 
 
 
