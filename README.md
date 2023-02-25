@@ -64,4 +64,4 @@ Now you can start the a diagnostic tool. During my quick search and install I pi
 
 Finally, a picture of the hardware setup. So that everyone can imagine what the construction should look like if you want to try it out for yourself. 
 
-[]()
+![](https://github.com/DiagProf/EcuDiagSim/blob/master/images/HardwareSetup.png)
