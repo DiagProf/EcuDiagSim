@@ -206,6 +206,7 @@ namespace EcuDiagSim
         {
             foreach ( var simUnit in _ecuDiagSimUnits )
             {
+                //simUnit.StartHotReloadTask();
                 _fileSysWatcher.Changed += simUnit.FileChanged;
             }
         }

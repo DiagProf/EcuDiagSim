@@ -29,15 +29,18 @@ using DiagEcuSim;
 using ISO22900.II;
 using Microsoft.Extensions.Logging;
 using Neo.IronLua;
+using System.Threading;
 
 namespace EcuDiagSim
 {
     internal class LuaEcuDiagSimUnit : Lua
     {
         private readonly ILogger _logger = ApiLibLogging.CreateLogger<LuaEcuDiagSimUnit>();
-        internal readonly List<string> _entryPointCoreTableNames = new();
+        private readonly List<string> _entryPointCoreTableNames = new();
         private LuaChunk _chunk;
         private LuaResult _result;
+       // private SemaphoreSlim _semaphoregate = new SemaphoreSlim(0);
+        private CancellationToken _ct;
 
         private DateTime _lastRead = DateTime.MinValue;
         internal ReaderWriterLockSlim RwLocker = new();
@@ -71,16 +74,14 @@ namespace EcuDiagSim
                     }
                     else
                     {
-                        _logger.LogError(
-                            "VCI does not support the resource requested by CoreTable: {entryPointCoreTableName} (inside LUA File: {FullLuaFileName}) ",
+                        _logger.LogError("VCI does not support the resource requested by CoreTable: {entryPointCoreTableName} (inside LUA File: {FullLuaFileName}) ",
                             entryPointCoreTableName, FullLuaFileName.FullName);
                         return false;
                     }
                 }
                 else
                 {
-                    _logger.LogError(
-                        "EcuDiagSim does not support the resource requested by CoreTable: {entryPointCoreTableName} (inside LUA File: {FullLuaFileName}) ",
+                    _logger.LogError("EcuDiagSim does not support the resource requested by CoreTable: {entryPointCoreTableName} (inside LUA File: {FullLuaFileName}) ",
                         entryPointCoreTableName, FullLuaFileName.FullName);
                     return false;
                 }
@@ -92,7 +93,8 @@ namespace EcuDiagSim
 
         public List<Task> Connect(CancellationToken ct)
         {
-            var tasks = new List<Task>();
+            _ct = ct;
+           var tasks = new List<Task>();
             foreach ( var coreTable in EcuDiagSimLuaCoreTables )
             {
                 tasks.Add(coreTable.Connect(ct));
@@ -115,52 +117,100 @@ namespace EcuDiagSim
         }
 
         // Define the event handlers.  
-        internal void FileChanged(object source, FileSystemEventArgs e)
+        internal void FileChanged(object source, FileSystemEventArgs ev)
         {
-            if ( e.ChangeType == WatcherChangeTypes.Changed )
+
+            var _cts = new CancellationTokenSource();
+            var _ct = _cts.Token;
+
+            if ( ev.ChangeType == WatcherChangeTypes.Changed )
             {
                 // There is a nasty bug in the FileSystemWatch which causes the 
                 // events of the FileSystemWatcher to be called twice.
                 // There are a lot of resources about this to be found on the Internet,
                 // but there are no real solutions.
                 // Therefore, this workaround is necessary: 
-                var lastWriteTime = File.GetLastWriteTime(e.FullPath);
+                var lastWriteTime = File.GetLastWriteTime(ev.FullPath);
                 if ( lastWriteTime >= _lastRead + TimeSpan.FromMilliseconds(100) )
                 {
-                    if ( e.FullPath.Equals(FullLuaFileName.FullName) )
+                    if ( ev.FullPath.Equals(FullLuaFileName.FullName) )
                     {
-                        Task.Factory.StartNew(() =>
-                        {
-                            //EnterWriteLock: Acquires a writer lock.
-                            //If any reader or writer locks are already held, this method will block until all locks are released.
-                            RwLocker.EnterWriteLock();
-                            try
-                            {
-                                // Specify what is done when a file is changed.  
-                                new Builder(this)
-                                    //.EnrichLuaWorld()
-                                    .CompileChunk()
-                                    .DoChunk();
-
-                                foreach ( var coreTable in EcuDiagSimLuaCoreTables )
-                                {
-                                    coreTable.Refresh();
-                                }
-
-                                // .EntryPoints()
-                                // .Build();
-                                _logger.LogInformation("{Name} with path {FullPath} has been {ChangeType}", e.Name, e.FullPath, e.ChangeType);
-                            }
-                            finally
-                            {
-                                RwLocker.ExitWriteLock();
-                            }
-                        }, TaskCreationOptions.LongRunning);
                         _lastRead = lastWriteTime;
+                        //_semaphoregate.Release();
+
+
+                        //Task.Factory.StartNew(() =>
+                        //{
+                        //    //EnterWriteLock: Acquires a writer lock.
+                        //    //If any reader or writer locks are already held, this method will block until all locks are released.
+                        //    RwLocker.EnterWriteLock();
+                        //    try
+                        //    {
+                        //        // Specify what is done when a file is changed.  
+                        //        new Builder(this)
+                        //            //.EnrichLuaWorld()
+                        //            .CompileChunk()
+                        //            .DoChunk();
+
+                        //        foreach ( var coreTable in EcuDiagSimLuaCoreTables )
+                        //        {
+                        //            coreTable.Refresh();
+                        //        }
+
+                        //        // .EntryPoints()
+                        //        // .Build();
+                        //        _logger.LogInformation("{Name} with path {FullPath} has been {ChangeType}", ev.Name, ev.FullPath, ev.ChangeType);
+                        //    }
+                        //    finally
+                        //    {
+                        //        RwLocker.ExitWriteLock();
+                        //    }
+                        //}, TaskCreationOptions.LongRunning);
+
                     }
                 }
                 // else discard the (duplicated) OnChanged event
             }
+        }
+
+        //public void StartHotReloadTask() {
+            
+        //    Task.Factory.StartNew( async() => {
+        //        while ( !_ct.IsCancellationRequested )
+        //        {
+        //            await _semaphoregate.WaitAsync(_ct);
+        //            await LuaFileHotReload();
+        //        }
+
+        //    }, TaskCreationOptions.LongRunning);
+        //}
+
+        private Task LuaFileHotReload() {
+            var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            //EnterWriteLock: Acquires a writer lock.
+            //If any reader or writer locks are already held, this method will block until all locks are released.
+            RwLocker.EnterWriteLock();
+            try {
+                // Specify what is done when a file is changed.  
+                new Builder(this)
+                    //.EnrichLuaWorld()
+                    .CompileChunk()
+                    .DoChunk();
+
+                foreach (var coreTable in EcuDiagSimLuaCoreTables) {
+                    coreTable.Refresh();
+                }
+
+                // .EntryPoints()
+                // .Build();
+                // _logger.LogInformation("{Name} with path {FullPath} has been {ChangeType}", ev.Name, ev.FullPath, ev.ChangeType);
+                _logger.LogInformation("HotReload for file {FullLuaFileName}", FullLuaFileName);
+                tcs.SetResult();
+            }
+            finally {
+                RwLocker.ExitWriteLock();
+            }
+            return tcs.Task;
         }
 
         protected override void Dispose(bool disposing)
@@ -188,8 +238,12 @@ namespace EcuDiagSim
 
             public Builder EnrichLuaWorld()
             {
-                _diagSimUnit.Environment["ascii"] = new Func<string, string>(LuaWorldEnricher.Ascii);
-                _diagSimUnit.Environment["sleep"] = new Action<int>(LuaWorldEnricher.Sleep);
+                _diagSimUnit.Environment["str2sbs"] = new Func<string, string>(LuaWorldEnricher.Str2Sbs);
+                //ascii is only for comatility reasons
+                _diagSimUnit.Environment["ascii"] = new Func<string, string>(LuaWorldEnricher.Str2Sbs);
+                _diagSimUnit.Environment["sbs2str"] = new Func<string, string>(LuaWorldEnricher.Sbs2Str);
+                _diagSimUnit.Environment["num2UInt8Sbs"] = new Func<int, string>(LuaWorldEnricher.Num2UInt8Sbs);
+                _diagSimUnit.Environment["num2UInt16Sbs"] = new Func<int, string>(LuaWorldEnricher.Num2UInt16Sbs);
                 return this;
             }
 
@@ -252,5 +306,6 @@ namespace EcuDiagSim
                 return _diagSimUnit;
             }
         }
+
     }
 }
