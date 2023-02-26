@@ -25,6 +25,7 @@
 
 #endregion
 
+using System.Numerics;
 using System.Text;
 using ISO22900.II;
 
@@ -39,11 +40,43 @@ namespace DiagEcuSim
             return string.Join("", str.Split(default(string[]), StringSplitOptions.RemoveEmptyEntries));
         }
 
-        public static string Ascii(string s)
+        /// <summary>
+        /// Convert the given string into another string that represents the hex bytes with space between.
+        /// Short name of result ist Simulator Byte String (sbs)
+        /// This is a convenience function to use ascii strings in responses.
+        /// "Hello World" -> "48 65 6C 6C 6F 20 57 6F 72 6C 64"
+        /// </summary>
+        /// <param name="s">Hello World</param>
+        /// <returns>"48 65 6C 6C 6F 20 57 6F 72 6C 64"</returns>
+        public static string Str2Sbs(string s)
         {
             var bytes = Encoding.ASCII.GetBytes(s);
             return BitConverter.ToString(bytes).Replace('-', ' ');
         }
+
+        /// <summary>
+        /// Convert the given Simulator Byte String (sbs) into string.
+        /// "48 65 6C 6C 6F 20 57 6F 72 6C 64" -> "Hello World"
+        /// </summary>
+        /// <param name="s">"48 65 6C 6C 6F 20 57 6F 72 6C 64"</param>
+        /// <returns>"Hello World"</returns>
+        public static string Sbs2Str(string s)
+        {
+            return BitConverter.ToString(ByteAndBitUtility.BytesFromHexFastest(s));
+        }
+
+        public static string Num2UInt8Sbs(int number)
+        {
+            return ((byte)number).ToString("X2");
+        }
+
+        public static string Num2UInt16Sbs(int number) {
+            var s = ((ushort)number).ToString("X4");
+            return s[0] + s[1] + " " + s[2] + s[3]; //fastest variant
+        }
+
+
+
 
         public static void Sleep(int milliseconds)
         {
