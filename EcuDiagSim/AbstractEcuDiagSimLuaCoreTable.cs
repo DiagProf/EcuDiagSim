@@ -38,7 +38,7 @@ namespace EcuDiagSim
         protected readonly ComLogicalLink Cll;
         protected readonly LuaEcuDiagSimUnit _luaEcuDiagSimUnit;
         protected readonly string TableName;
-        protected CancellationToken Ct;
+       
         protected LuaTable Table;
 
         protected AbstractEcuDiagSimLuaCoreTable(LuaEcuDiagSimUnit luaEcuDiagSimUnit, string tableName, ComLogicalLink cll)
@@ -110,17 +110,17 @@ namespace EcuDiagSim
 
         protected virtual void SendRawLuaCallback(string simulatorResponseString)
         {
-            _logger.LogInformation("Table: {TableName}, SimuResp: {responseString}", TableName, simulatorResponseString);
+            _logger.LogInformation("Table: {TableName} > {responseString}", TableName, simulatorResponseString);
             _ = SendAsync(simulatorResponseString);
         }
 
-        protected virtual async Task<bool> SendAsync(string simulatorResponseString)
+        protected virtual async Task<bool> SendAsync(string simulatorResponseString, CancellationToken ct = default)
         {
             var isOksy = true;
             using ( var simulatorResponseCop =
                    Cll.StartCop(PduCopt.PDU_COPT_SENDRECV, 1, 0, ByteAndBitUtility.BytesFromHex(simulatorResponseString)) )
             {
-                var resultResponse = await simulatorResponseCop.WaitForCopResultAsync(Ct).ConfigureAwait(false);
+                var resultResponse = await simulatorResponseCop.WaitForCopResultAsync(ct).ConfigureAwait(false);
 
                 //for the information quite good... but breaks the order of how the events were fired
                 resultResponse.PduEventItemResults().ForEach(result =>

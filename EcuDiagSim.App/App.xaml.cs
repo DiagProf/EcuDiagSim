@@ -61,6 +61,7 @@ using UnhandledExceptionEventArgs = Microsoft.UI.Xaml.UnhandledExceptionEventArg
 //https://developer-blog.net/programm-im-windows-store-veroeffentlichen/
 //https://blog.ndepend.com/c-async-await-explained/
 //https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/volatile
+//https://devblogs.microsoft.com/premier-developer/the-danger-of-taskcompletionsourcet-class/
 
 namespace EcuDiagSim.App
 {

@@ -32,7 +32,7 @@ PCM = {
 		
 		--read did
 		["22 *"] = function (request)
-				did_id = trim(request:sub(3))
+				did_id = request:sub(4)
 				value = dids[did_id]
 				if(value ~= nil) then
 					return "62 " .. did_id .. " " .. value
@@ -41,8 +41,8 @@ PCM = {
 			end,
 		--write did
 		["2E *"] = function (request)
-			did_id = trim(request:sub(3,8))
-			new_val = trim(request:sub(9))
+			did_id = request:sub(4,8)
+			new_val = trim(request:sub(10))
 			dids[did_id] = new_val
 			return "6E " .. did_id
 		end,

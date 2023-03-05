@@ -108,8 +108,6 @@ namespace EcuDiagSim
                 return false;
             }
 
-            RegistrationEcuDiagSimUnitsOnWatcherEvent();
-            _fileSysWatcher.EnableRaisingEvents = true;
             return true;
         }
 
@@ -202,31 +200,31 @@ namespace EcuDiagSim
             return allGood;
         }
 
-        public void RegistrationEcuDiagSimUnitsOnWatcherEvent()
-        {
-            foreach ( var simUnit in _ecuDiagSimUnits )
-            {
-                //simUnit.StartHotReloadTask();
-                _fileSysWatcher.Changed += simUnit.FileChanged;
-            }
-        }
-
         public async Task ConnectAndRunAsync(CancellationToken ctsToken)
         {
             var tasks = new List<Task>();
             foreach ( var simUnit in _ecuDiagSimUnits )
             {
+                simUnit.StartHotReloadTask(ctsToken);
+                _fileSysWatcher.Changed += simUnit.FileChanged;
+
                 tasks.AddRange(simUnit.Connect(ctsToken));
             }
+            _fileSysWatcher.EnableRaisingEvents = true;
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
+
+            _fileSysWatcher.EnableRaisingEvents = false;
+            foreach (var simUnit in _ecuDiagSimUnits) 
+            {
+                _fileSysWatcher.Changed -= simUnit.FileChanged;
+            }
         }
 
         private void ReleaseUnmanagedResources()
         {
             foreach ( var simUnit in _ecuDiagSimUnits )
             {
-                //UnRegistrationEcuDiagSimUnitsOnWatcherEvent
                 _fileSysWatcher.Changed -= simUnit.FileChanged;
                 simUnit.Dispose();
             }

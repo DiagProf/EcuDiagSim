@@ -117,19 +117,26 @@ namespace EcuDiagSim
 
         public override async Task Connect(CancellationToken ct)
         {
-            Ct = ct;
-
             Cll.Connect();
 
             using ( var receiveCop = Cll.StartCop(PduCopt.PDU_COPT_SENDRECV, 0, -1, new byte[] {}) )
             {
                 while ( !ct.IsCancellationRequested )
                 {
-                    var result = await receiveCop.WaitForCopResultAsync(Ct).ConfigureAwait(false);
+                    var result = await receiveCop.WaitForCopResultAsync(ct).ConfigureAwait(false);
                     if ( result.DataMsgQueue().Count > 0 )
                     {
                         var testerRequestString = ByteAndBitUtility.BytesToHexString(result.DataMsgQueue().First().ToArray(), true);
-                        _logger.LogInformation("Table: {TableName}, TesterReq: {testerRequest}", TableName, testerRequestString);
+                        _logger.LogInformation("Table: {TableName} < {testerRequest}", TableName, testerRequestString);
+
+
+                        while (_luaEcuDiagSimUnit.ResourceBusy == 1)
+                        {
+                            var responsePending = "7F " + testerRequestString.Substring(0, 2) + " 78";
+                            await SendAsync(responsePending, ct).ConfigureAwait(false);
+                            await Task.Delay(800, ct).ConfigureAwait(false);
+                        }
+
 
                         var simulatorResponseString = GetResponseString(testerRequestString);
                         if ( simulatorResponseString == null )
@@ -146,8 +153,8 @@ namespace EcuDiagSim
                             continue;
                         }
 
-                        _logger.LogInformation("Table: {TableName}, SimuResp: {responseString}", TableName, simulatorResponseString);
-                        await SendAsync(simulatorResponseString);
+                        _logger.LogInformation("Table: {TableName} > {responseString}", TableName, simulatorResponseString);
+                        await SendAsync(simulatorResponseString, ct).ConfigureAwait(false);
                     }
                 }
             }
