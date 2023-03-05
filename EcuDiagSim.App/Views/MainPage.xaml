@@ -232,7 +232,7 @@
                                                 HorizontalTextAlignment="Center"
                                                 Text="{x:Bind SourceContext.Text}" />
                                             <!--  Message Elements  -->
-                                            <Grid Grid.Column="4" ColumnDefinitions="*,Auto">
+                                            <Grid Grid.Column="4" ColumnDefinitions="Auto,Auto">
                                                 <!--  Message  -->
                                                 <TextBlock
                                                     Grid.Column="0"
