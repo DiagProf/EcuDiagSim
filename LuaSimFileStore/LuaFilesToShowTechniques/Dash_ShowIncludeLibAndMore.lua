@@ -12,7 +12,7 @@ did = {
 	["F1 98"] = "01 81 C8 F6 30 39",
 }
 
-local Language = 3
+local Language = {3}
 
 local VoltageK30 = 12000 --mV
 
@@ -59,9 +59,10 @@ Dash = {
 		["2E 22 03 *"] = function(request)  did[DID_2203_Odo] = request:sub(10) return "6E 22 03" end,
 		
 		
-		["22 22 33"] = function(r) return "62 22 33 " .. conv:num2uInt8Sbs(Language) end,
-		["2E 22 33 *"] = function(request) Language = conv:sbs2uInt8Num(request:sub(10) ) return "6E 22 33" end,
-		
+		-- ["22 22 33"] = function(r) return "62 22 33 " .. conv:num2uInt8Sbs(Language) end,
+		-- ["2E 22 33 *"] = function(request) Language = conv:sbs2uInt8Num(request:sub(10) ) return "6E 22 33" end,
+		["22 22 33"] =  function(r) return "62 22 33 " .. num2uInt8Sbs(Language[1]) end,
+		["2E 22 33 *"] = function(request) Language[1] = sbs4uInt8Num(request:sub(10))  return "6E 22 33" end,
 		
 		["22 22 35"] = function(r) return "62 22 35 " .. did[request:sub(4)] end,
 		["2E 22 35 *"] = function(request) did[request:sub(4,8)] = request:sub(10) return "6E 22 35" end,
@@ -84,7 +85,7 @@ Dash = {
 		--read did
 		["22 F1 9*"] = function(request)
 				did_id = request:sub(4)
-				value = did[did_id]
+				local value = did[did_id]
 				if(value ~= nil) then
 					return "62 " .. did_id .. " " .. value
 				end
@@ -93,9 +94,9 @@ Dash = {
 		--write did
 		["2E F1 9*"] = function(request)
 				did_id = request:sub(4,8)
-				value = did[did_id]
+				local value = did[did_id]
 				if(value ~= nil) then
-					dids[did_id] = request:sub(10)
+					did[did_id] = request:sub(10)
 					return "6E " .. did_id
 				end
 				return "7F 2E 12"

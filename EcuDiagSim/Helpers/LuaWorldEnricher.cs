@@ -25,6 +25,7 @@
 
 #endregion
 
+using System.Globalization;
 using System.Numerics;
 using System.Text;
 using ISO22900.II;
@@ -69,6 +70,16 @@ namespace DiagEcuSim
         {
             return ((byte)number).ToString("X2");
         }
+
+        public static int Sbs4UInt8Num(string sbs) {
+            bool success = byte.TryParse(sbs, NumberStyles.HexNumber, null as IFormatProvider, out var byteValue);
+            if ( success )
+            {
+                return byteValue;
+            }
+            return 0;
+        }
+        
 
         public static string Num2UInt16Sbs(int number) {
             var s = ((ushort)number).ToString("X4");

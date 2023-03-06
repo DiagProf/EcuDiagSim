@@ -33,6 +33,8 @@ using System.Threading;
 
 namespace EcuDiagSim
 {
+    //delegate void ActionRef<T1, T2>(T1 itemI, ref T2 item);
+
     internal class LuaEcuDiagSimUnit : Lua
     {
         internal int ResourceBusy = 0;
@@ -213,7 +215,11 @@ namespace EcuDiagSim
                 //ascii is only for comatility reasons
                 _diagSimUnit.Environment["ascii"] = new Func<string, string>(LuaWorldEnricher.Str2Sbs);
                 _diagSimUnit.Environment["sbs2str"] = new Func<string, string>(LuaWorldEnricher.Sbs2Str);
-                //_diagSimUnit.Environment["num2UInt8Sbs"] = new Func<int, string>(LuaWorldEnricher.Num2UInt8Sbs);
+                _diagSimUnit.Environment["sleep"] = new Action<int>(LuaWorldEnricher.Sleep);
+
+                _diagSimUnit.Environment["num2uInt8Sbs"] = new Func<int, string>(LuaWorldEnricher.Num2UInt8Sbs);
+                _diagSimUnit.Environment["sbs4uInt8Num"] = new Func<string, int>(LuaWorldEnricher.Sbs4UInt8Num);
+
                 //_diagSimUnit.Environment["num2UInt16Sbs"] = new Func<int, string>(LuaWorldEnricher.Num2UInt16Sbs);
                 return this;
             }
