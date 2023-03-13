@@ -28,6 +28,7 @@
 using ISO22900.II;
 using Microsoft.Extensions.Logging;
 using Neo.IronLua;
+using System.Text.RegularExpressions;
 
 namespace EcuDiagSim
 {
@@ -97,6 +98,21 @@ namespace EcuDiagSim
                     }
                 }
 
+                if (rawTableResponseObj == null) {
+                    foreach (var rawTableItem in RawTable) {
+                        var requestKeyTrimmed = ((string)rawTableItem.Key).Replace(" ", "").upper();
+                        if (requestKeyTrimmed.Contains("x"))
+                        {
+                            var pattern = @"^" + requestKeyTrimmed.Replace("x", ".");
+                            var m = Regex.Match(requestKeyTrimmed, pattern);
+                            if ( m.Success )
+                            {
+                                rawTableResponseObj = rawTableItem.Value;
+                                break;
+                            }
+                        }
+                    }
+                }
 
                 string simulatorResponseString = null;
 

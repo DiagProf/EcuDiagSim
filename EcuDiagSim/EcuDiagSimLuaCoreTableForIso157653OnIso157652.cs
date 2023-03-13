@@ -134,6 +134,7 @@ namespace EcuDiagSim
                         {
                             var responsePending = "7F " + testerRequestString.Substring(0, 2) + " 78";
                             await SendAsync(responsePending, ct).ConfigureAwait(false);
+                            _logger.LogInformation("Table: {TableName} > {responseString}, Simulator really busy", TableName, responsePending);
                             await Task.Delay(800, ct).ConfigureAwait(false);
                         }
 

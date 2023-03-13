@@ -2,7 +2,7 @@ local conv = require ("C:\\Users\\admin\\source\\repos\\EcuDiagSim\\LuaSimFileSt
 --local conv = require ("\\..\\LuaLib\\Conversion") -- not yet working        
 
 
-local DID_2203_Odo = "odo"
+local DID_2203_Odo = 0x2203
 did = {
 	["DID_0600_Coding"] = "14 0B 01 04 00",
 	[DID_2203_Odo] = "05 AF",
@@ -15,6 +15,8 @@ did = {
 local Language = {3}
 
 local VoltageK30 = 12000 --mV
+
+local RequestCounterToComplete = 0
 
 Dash = {
 	DataForComLogicalLinkCreation = {
@@ -101,11 +103,23 @@ Dash = {
 				end
 				return "7F 2E 12"
 			end,
+		
+       	
+		["31 01 03 17 04 00 00"] = function(r) RequestCounterToComplete = 0 return "71 01 03 17" end,
+		["22 01 02"] = function(r)  		              
+						   if RequestCounterToComplete < 50 then
+						   	  RequestCounterToComplete = RequestCounterToComplete + 1 	
+							  return "62 01 02 C0" --C0 Running 
+						   else
+                              return "62 01 02 10" --0x10 -> ok
+						   end  
+					   end,	
+		["31 02 03 17"] = "71 01 03 17",
 		["19 02 04"] = "59 02 99",
 		["19 02 08"] = "59 02 99",
 		["19 02 AE"] = "59 02 99",
 		
 		--my love in case of flashing
-		["36 *"] = function (request) return "76 " .. request:sub(4,5) end,
+		["36 *"] = function(request) return "76 " .. request:sub(4,5) end,
     }
 }
