@@ -41,6 +41,12 @@ namespace EcuDiagSim
         private uint CP_CanFuncReqFormat { get; set; } = 0x05;
         private uint CP_CanFuncReqId { get; set; } = 0x7DF;
 
+        //This is a fake ComParam not in ISO 22900-2 only to simulate a 2nd functional address
+        //if an ECU should react to 2 functional addresses.
+        private uint CP_CanFuncReqExtAddr2 { get; set; }
+        private uint CP_CanFuncReqFormat2 { get; set; } = 0x05;
+        private uint CP_CanFuncReqId2 { get; set; } = 0xFFFF_FFFF;
+
         internal EcuDiagSimLuaCoreTableForIso157653OnIso157652(LuaEcuDiagSimUnit luaEcuDiagSimUnit, string tableName,
             ComLogicalLink cll) : base(luaEcuDiagSimUnit, tableName, cll)
         {
@@ -107,6 +113,17 @@ namespace EcuDiagSim
                         CP_CanRespUSDTId = CP_CanFuncReqId,
                         CP_CanRespUSDTExtAddr = CP_CanFuncReqExtAddr
                     });
+
+                    //for simulating a 2nd functional address
+                    if ( CP_CanFuncReqId2 != 0xFFFF_FFFF )
+                    {
+                        _UniqueRespIdentifierDataSet.Add(new UniqueRespIdentifierDataSet
+                        {
+                            CP_CanRespUSDTFormat = CP_CanFuncReqFormat2 & 0xF,
+                            CP_CanRespUSDTId = CP_CanFuncReqId2,
+                            CP_CanRespUSDTExtAddr = CP_CanFuncReqExtAddr2
+                        });
+                    }
                 }
 
                 return true;
@@ -130,7 +147,7 @@ namespace EcuDiagSim
                         _logger.LogInformation("Table: {TableName} < {testerRequest}", TableName, testerRequestString);
 
 
-                        while (_luaEcuDiagSimUnit.ResourceBusy == 1)
+                        while ( _luaEcuDiagSimUnit.ResourceBusy == 1 )
                         {
                             var responsePending = "7F " + testerRequestString.Substring(0, 2) + " 78";
                             await SendAsync(responsePending, ct).ConfigureAwait(false);
@@ -247,6 +264,21 @@ namespace EcuDiagSim
                 CP_CanFuncReqExtAddr = (uint)cpCanFuncReqExtAddr;
             }
 
+            if (table.Members["CP_CanFuncReqId2"] is int cpCanFuncReqId2)
+            {
+                CP_CanFuncReqId2 = (uint)cpCanFuncReqId2;
+            }
+
+            if (table.Members["CP_CanFuncReqFormat2"] is int cpCanFuncReqFormat2)
+            {
+                CP_CanFuncReqFormat2 = (uint)cpCanFuncReqFormat2;
+            }
+
+            if (table.Members["CP_CanFuncReqExtAddr2"] is int cpCanFuncReqExtAddr2)
+            {
+                CP_CanFuncReqExtAddr2 = (uint)cpCanFuncReqExtAddr2;
+            }
+
             return true;
         }
 
@@ -306,23 +338,17 @@ namespace EcuDiagSim
                 ecuUniqueRespDataPages.Add(new PduEcuUniqueRespData(dataSet.CP_CanRespUSDTId, //<- this is the UniqueRespIdentifier
                     new List<PduComParam>
                     {
-                        DiagPduApiComParamFactory.Create("CP_CanPhysReqFormat", dataSet.CP_CanPhysReqFormat, PduPt.PDU_PT_UNUM32,
-                            PduPc.PDU_PC_UNIQUE_ID),
+                        DiagPduApiComParamFactory.Create("CP_CanPhysReqFormat", dataSet.CP_CanPhysReqFormat, PduPt.PDU_PT_UNUM32, PduPc.PDU_PC_UNIQUE_ID),
                         DiagPduApiComParamFactory.Create("CP_CanPhysReqId", dataSet.CP_CanPhysReqId, PduPt.PDU_PT_UNUM32, PduPc.PDU_PC_UNIQUE_ID),
-                        DiagPduApiComParamFactory.Create("CP_CanPhysReqExtAddr", dataSet.CP_CanPhysReqExtAddr, PduPt.PDU_PT_UNUM32,
-                            PduPc.PDU_PC_UNIQUE_ID),
+                        DiagPduApiComParamFactory.Create("CP_CanPhysReqExtAddr", dataSet.CP_CanPhysReqExtAddr, PduPt.PDU_PT_UNUM32, PduPc.PDU_PC_UNIQUE_ID),
 
-                        DiagPduApiComParamFactory.Create("CP_CanRespUSDTFormat", dataSet.CP_CanRespUSDTFormat, PduPt.PDU_PT_UNUM32,
-                            PduPc.PDU_PC_UNIQUE_ID),
+                        DiagPduApiComParamFactory.Create("CP_CanRespUSDTFormat", dataSet.CP_CanRespUSDTFormat, PduPt.PDU_PT_UNUM32, PduPc.PDU_PC_UNIQUE_ID),
                         DiagPduApiComParamFactory.Create("CP_CanRespUSDTId", dataSet.CP_CanRespUSDTId, PduPt.PDU_PT_UNUM32, PduPc.PDU_PC_UNIQUE_ID),
-                        DiagPduApiComParamFactory.Create("CP_CanRespUSDTExtAddr", dataSet.CP_CanRespUSDTExtAddr, PduPt.PDU_PT_UNUM32,
-                            PduPc.PDU_PC_UNIQUE_ID),
+                        DiagPduApiComParamFactory.Create("CP_CanRespUSDTExtAddr", dataSet.CP_CanRespUSDTExtAddr, PduPt.PDU_PT_UNUM32, PduPc.PDU_PC_UNIQUE_ID),
 
-                        DiagPduApiComParamFactory.Create("CP_CanRespUUDTFormat", dataSet.CP_CanRespUUDTFormat, PduPt.PDU_PT_UNUM32,
-                            PduPc.PDU_PC_UNIQUE_ID),
+                        DiagPduApiComParamFactory.Create("CP_CanRespUUDTFormat", dataSet.CP_CanRespUUDTFormat, PduPt.PDU_PT_UNUM32, PduPc.PDU_PC_UNIQUE_ID),
                         DiagPduApiComParamFactory.Create("CP_CanRespUUDTId", dataSet.CP_CanRespUUDTId, PduPt.PDU_PT_UNUM32, PduPc.PDU_PC_UNIQUE_ID),
-                        DiagPduApiComParamFactory.Create("CP_CanRespUUDTExtAddr", dataSet.CP_CanRespUUDTExtAddr, PduPt.PDU_PT_UNUM32,
-                            PduPc.PDU_PC_UNIQUE_ID)
+                        DiagPduApiComParamFactory.Create("CP_CanRespUUDTExtAddr", dataSet.CP_CanRespUUDTExtAddr, PduPt.PDU_PT_UNUM32, PduPc.PDU_PC_UNIQUE_ID)
                     }
                 ));
             }
@@ -344,10 +370,10 @@ namespace EcuDiagSim
         {
             public uint CP_CanPhysReqExtAddr { get; set; }
             public uint CP_CanPhysReqFormat { get; set; } = 0x05;
-            public uint CP_CanPhysReqId { get; set; } = 0x7E0;
+            public uint CP_CanPhysReqId { get; set; } = 0xFFFFFFFF;
             public uint CP_CanRespUSDTExtAddr { get; set; }
             public uint CP_CanRespUSDTFormat { get; set; } = 0x05;
-            public uint CP_CanRespUSDTId { get; set; } = 0x7E8;
+            public uint CP_CanRespUSDTId { get; set; } = 0xFFFFFFFF;
             public uint CP_CanRespUUDTExtAddr { get; set; }
             public uint CP_CanRespUUDTFormat { get; set; }
             public uint CP_CanRespUUDTId { get; set; } = 0xFFFFFFFF;

@@ -25,6 +25,7 @@
 
 #endregion
 
+using System.Globalization;
 using System.Text;
 
 namespace DiagEcuSim
@@ -33,7 +34,7 @@ namespace DiagEcuSim
     /// Utilities for bit and byte operations.
     /// (Frequently copied-and-pasted across my projects)
     /// </summary>
-    public class ByteAndBitUtility
+    public static class ByteAndBitUtility
     {
         /// <summary>
         /// Converts an array of bytes into a printable hex-string
@@ -108,6 +109,37 @@ namespace DiagEcuSim
                 sb.Append(Convert.ToString(b, toBase: 10).PadLeft(3, '0') + " ");
             }
             return sb.ToString().TrimEnd();
+        }
+
+
+        /// <summary>
+        /// eg. 0x4711080F or 0x47 11 080F or 4711 080F   to   1192298511dez inside uint
+        /// </summary>
+        /// <param name="hex"></param>
+        /// <returns></returns>
+        public static uint HexStringToUint32(string hex)
+        {
+            bool success = uint.TryParse(hex.Replace(" ",""), NumberStyles.HexNumber | NumberStyles.AllowHexSpecifier, null as IFormatProvider, out var byteValue);
+            if (success)
+            {
+                return byteValue;
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// eg. 0x0F or 0F t0 15dez  inside uint
+        /// </summary>
+        /// <param name="hex"></param>
+        /// <returns></returns>
+        public static byte HexStringToUint8(string hex)
+        {
+            bool success = byte.TryParse(hex, NumberStyles.HexNumber | NumberStyles.AllowHexSpecifier, null as IFormatProvider, out var byteValue);
+            if (success)
+            {
+                return byteValue;
+            }
+            return 0;
         }
     }
 }

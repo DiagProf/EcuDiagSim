@@ -29,7 +29,6 @@ using DiagEcuSim;
 using ISO22900.II;
 using Microsoft.Extensions.Logging;
 using Neo.IronLua;
-using System.Threading;
 
 namespace EcuDiagSim
 {
@@ -37,16 +36,16 @@ namespace EcuDiagSim
 
     internal class LuaEcuDiagSimUnit : Lua
     {
-        internal int ResourceBusy = 0;
-
         private readonly ILogger _logger = ApiLibLogging.CreateLogger<LuaEcuDiagSimUnit>();
         private readonly List<string> _entryPointCoreTableNames = new();
         private LuaChunk _chunk;
         private LuaResult _result;
-        private SemaphoreSlim _semaphoreHotReload = new(0,1);
-        //private CancellationToken _ct;
+
+        private readonly SemaphoreSlim _semaphoreHotReload = new(0, 1);
+      
 
         private DateTime _lastRead = DateTime.MinValue;
+        internal int ResourceBusy;
         internal ReaderWriterLockSlim RwLocker = new();
         public List<AbstractEcuDiagSimLuaCoreTable> EcuDiagSimLuaCoreTables = new();
         public dynamic DynamicEnvironment => Environment;
@@ -69,12 +68,26 @@ namespace EcuDiagSim
                 if ( EcuDiagSimLuaCoreTableForIso157653OnIso157652.IsThisClassForThisLuaTable(table) )
                 {
                     var cllCreationData = AbstractEcuDiagSimLuaCoreTable.GetDataForComLogicalLinkCreation(table);
-                    var resourceIds = vci.GetResourceIds(cllCreationData.BusTypeShortName, cllCreationData.ProtocolShortName,
-                        cllCreationData.DlcPinData.ToList());
+                    var resourceIds = vci.GetResourceIds(cllCreationData.BusTypeShortName, cllCreationData.ProtocolShortName, cllCreationData.DlcPinData.ToList());
                     if ( resourceIds.Any() )
                     {
                         EcuDiagSimLuaCoreTables.Add(new EcuDiagSimLuaCoreTableForIso157653OnIso157652(this, entryPointCoreTableName,
                             vci.OpenComLogicalLink(resourceIds.First())));
+                    }
+                    else
+                    {
+                        _logger.LogError("VCI does not support the resource requested by CoreTable: {entryPointCoreTableName} (inside LUA File: {FullLuaFileName}) ",
+                            entryPointCoreTableName, FullLuaFileName.FullName);
+                        return false;
+                    }
+                }
+                else if ( EcuDiagSimLuaCoreTableForIso11898Raw.IsThisClassForThisLuaTable(table) )
+                {
+                    var cllCreationData = AbstractEcuDiagSimLuaCoreTable.GetDataForComLogicalLinkCreation(table);
+                    var resourceIds = vci.GetResourceIds(cllCreationData.BusTypeShortName, cllCreationData.ProtocolShortName, cllCreationData.DlcPinData.ToList());
+                    if ( resourceIds.Any() )
+                    {
+                        EcuDiagSimLuaCoreTables.Add(new EcuDiagSimLuaCoreTableForIso11898Raw(this, entryPointCoreTableName, vci.OpenComLogicalLink(resourceIds.First())));
                     }
                     else
                     {
@@ -124,12 +137,9 @@ namespace EcuDiagSim
         {
             if ( ev.ChangeType == WatcherChangeTypes.Changed )
             {
-                //
-                // There is a nasty bug in the FileSystemWatch which causes the 
-                // events of the FileSystemWatcher to be called twice.
-                // There are a lot of resources about this to be found on the Internet,
-                // but there are no real solutions.
-                // Therefore, this workaround is necessary: 
+                //Writing a file takes place in more than one step.
+                //Therefore there are several changed events when a file is written
+                //This workaround is necessary: because we need only one event 
                 var lastWriteTime = File.GetLastWriteTime(ev.FullPath);
                 if ( lastWriteTime >= _lastRead + TimeSpan.FromMilliseconds(100) )
                 {
@@ -143,45 +153,53 @@ namespace EcuDiagSim
             }
         }
 
-        public void StartHotReloadTask(CancellationToken ct) {
-
-            Task.Factory.StartNew(async _ => {
-                while (!ct.IsCancellationRequested) {
+        public void StartHotReloadTask(CancellationToken ct)
+        {
+            Task.Factory.StartNew(async _ =>
+            {
+                while ( !ct.IsCancellationRequested )
+                {
                     await _semaphoreHotReload.WaitAsync(ct).ConfigureAwait(false);
-                    await Task.Delay(100,ct).ConfigureAwait(false);
+                    //This delay ensures that we don't reload the file again
+                    //while the operating system is still performing various file write actions.
+                    await Task.Delay(100, ct).ConfigureAwait(false);
+
+                    //we use ResourceBusy to really send "Response Pending" for some protocols :-)
                     Interlocked.Exchange(ref ResourceBusy, 1);
                     await LuaFileHotReload().ConfigureAwait(false);
                     Interlocked.Exchange(ref ResourceBusy, 0);
                 }
-
-            }, ct, TaskCreationOptions.LongRunning );
+            }, ct, TaskCreationOptions.LongRunning);
         }
 
-        private Task LuaFileHotReload() {
+        private Task LuaFileHotReload()
+        {
             var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             //EnterWriteLock: Acquires a writer lock.
             //If any reader or writer locks are already held, this method will block until all locks are released.
             RwLocker.EnterWriteLock();
-            try {
+            try
+            {
                 // Specify what is done when a file is changed.  
                 new Builder(this)
                     //.EnrichLuaWorld()
                     .CompileChunk()
                     .DoChunk();
 
-                foreach (var coreTable in EcuDiagSimLuaCoreTables) {
+                foreach ( var coreTable in EcuDiagSimLuaCoreTables )
+                {
                     coreTable.Refresh();
                 }
-
-                // .EntryPoints()
-                // .Build();
-                // _logger.LogInformation("{Name} with path {FullPath} has been {ChangeType}", ev.Name, ev.FullPath, ev.ChangeType);
+                
                 _logger.LogInformation("HotReload for file {FullLuaFileName}", FullLuaFileName);
-                tcs.SetResult();
+                
             }
-            finally {
+            finally
+            {
+                tcs.SetResult();
                 RwLocker.ExitWriteLock();
             }
+
             return tcs.Task;
         }
 
@@ -283,6 +301,5 @@ namespace EcuDiagSim
                 return _diagSimUnit;
             }
         }
-
     }
 }

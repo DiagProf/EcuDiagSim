@@ -25,10 +25,12 @@
 
 #endregion
 
+using System.Runtime.InteropServices.JavaScript;
 using ISO22900.II;
 using Microsoft.Extensions.Logging;
 using Neo.IronLua;
 using System.Text.RegularExpressions;
+using DiagEcuSim;
 
 namespace EcuDiagSim
 {
@@ -47,21 +49,6 @@ namespace EcuDiagSim
         {
             base.Refresh();
             RawTable = (LuaTable)Table.Members["Raw"];
-            SetupAdditionalLuaFunctions();
-        }
-
-        public virtual bool SetupAdditionalLuaFunctions()
-        {
-            try
-            {
-                ((dynamic)Table).sendRaw = new Action<string>(SendRawLuaCallback);
-            }
-            catch ( Exception e )
-            {
-                return false;
-            }
-
-            return true;
         }
 
         protected override string? GetResponseString(string testerRequest)

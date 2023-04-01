@@ -38,7 +38,8 @@ namespace EcuDiagSim
         protected readonly ComLogicalLink Cll;
         protected readonly LuaEcuDiagSimUnit _luaEcuDiagSimUnit;
         protected readonly string TableName;
-       
+        protected readonly FlashFileReconstruction FlashFileReconstruction = new();
+
         protected LuaTable Table;
 
         protected AbstractEcuDiagSimLuaCoreTable(LuaEcuDiagSimUnit luaEcuDiagSimUnit, string tableName, ComLogicalLink cll)
@@ -65,6 +66,7 @@ namespace EcuDiagSim
                 //            ["6"] = "HI",
                 //            ["14"] = "LOW",
                 //        },
+                //        CllCreateFlagRawMode = true
                 //    },
                 //    Raw = ....
                 var busTypeShortName = (string)table.Members["BusTypeShortName"];
@@ -98,6 +100,12 @@ namespace EcuDiagSim
                         //DlcPinData DLC is default in this case { { 6, "HI" }, { 14, "LOW" } };
                     };
                 }
+
+                //This we need that in the upcoming releases
+                if ( (LuaTable)table.Members["CllCreateFlagRawMode"] is LuaTable flagRawMode )
+                {
+                    dataSetsForCllCreation.ComLogicalLinkCreationCreateFlag.RawMode = (bool)table.Members["CllCreateFlagRawMode"];
+                }
             }
 
             return dataSetsForCllCreation;
@@ -106,6 +114,26 @@ namespace EcuDiagSim
         internal virtual void Refresh()
         {
             Table = (LuaTable)_luaEcuDiagSimUnit.Environment[TableName];
+            SetupAdditionalLuaFunctions();
+        }
+
+        public virtual bool SetupAdditionalLuaFunctions()
+        {
+            try
+            {
+                ((dynamic)Table).sendRaw = new Action<string>(SendRawLuaCallback);
+                ((dynamic)Table).restartFlashFileReconstruction = new Action(FlashFileReconstruction.RestartReconstruction);
+                ((dynamic)Table).addFlashBlock = new Action(FlashFileReconstruction.AddFlashBlock);
+                ((dynamic)Table).setRequestDownloadInfos = new Func<string, string, string, bool>(FlashFileReconstruction.SetRequestDownloadInfos);
+                ((dynamic)Table).addRequestPayload = new Func<string, bool>(FlashFileReconstruction.AddRequestPayload);
+                ((dynamic)Table).reconstructFlashFile = new Func<string, bool>(FlashFileReconstruction.Reconstruct);
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         protected virtual void SendRawLuaCallback(string simulatorResponseString)
@@ -116,31 +144,37 @@ namespace EcuDiagSim
 
         protected virtual async Task<bool> SendAsync(string simulatorResponseString, CancellationToken ct = default)
         {
-            var isOksy = true;
-            using ( var simulatorResponseCop =
-                   Cll.StartCop(PduCopt.PDU_COPT_SENDRECV, 1, 0, ByteAndBitUtility.BytesFromHex(simulatorResponseString)) )
+            var isOkay = true;
+            using ( var sendCop = Cll.StartCop(PduCopt.PDU_COPT_SENDRECV, 1, 0, 
+                                                             ByteAndBitUtility.BytesFromHex(simulatorResponseString)) )
             {
-                var resultResponse = await simulatorResponseCop.WaitForCopResultAsync(ct).ConfigureAwait(false);
+                var sendCopOutcomes = await sendCop.WaitForCopResultAsync(ct).ConfigureAwait(false);
 
-                //for the information quite good... but breaks the order of how the events were fired
-                resultResponse.PduEventItemResults().ForEach(result =>
+                //in this constellation, the sendCopOutcomes.RawQueue is best empty
+                foreach ( var outcome in sendCopOutcomes.RawQueue )
                 {
-                    _logger.LogInformation("ReceiveThread - SendResponse: {SendResponse}",
-                        ByteAndBitUtility.BytesToHexString(result.ResultData.DataBytes, true));
-                    isOksy = false;
-                });
-                resultResponse.PduEventItemErrors().ForEach(error =>
-                {
-                    _logger.LogError("ReceiveThread - Error {error}", error.ErrorCodeId);
-                    isOksy = false;
-                });
-                resultResponse.PduEventItemInfos().ForEach(info => { _logger.LogInformation("ReceiveThread - Info {error}", info.InfoCode); });
+                    switch (outcome.PduItemType)
+                    {
+                        case PduIt.PDU_IT_ERROR:
+                           var error = ((PduEventItemError)outcome);
+                           _logger.LogError("Task SendAsync - Error code: {SendCopError}", error.ErrorCodeId);
+                            //_logger.LogError("Task SendAsync - Error code more specifically for the D-PDU API supplier: {SendCopErrorSpecifically}", error.ExtraErrorInfoId);
+                           isOkay = false;
+                           break;
+                      
+                        default:
+                            _logger.LogError("Task SendAsync - unexpected outcome PduItemType: {SendCopUnexpectedOutcomePduItemType}", outcome.PduItemType);
+                            isOkay = false;
+                            //throw new ArgumentOutOfRangeException();
+                            break;  
+                    }
+                }
+
             }
-
-            return isOksy;
+            return isOkay;
         }
 
-        protected abstract string? GetResponseString(string testerRequestString);
+       protected abstract string? GetResponseString(string testerRequestString);
 
         public abstract bool SetupCllData();
         public abstract Task Connect(CancellationToken ct);
