@@ -141,6 +141,7 @@ namespace EcuDiagSim.App.ViewModels
                             {
                                 await manager.ConnectAndRunAsync(_cts.Token);
                             }
+
                             manager.EcuDiagSimManagerEventLog -= Manager_EcuDiagSimManagerEventLog;
                         }
                     }), _cts.Token, TaskCreationOptions.LongRunning | TaskCreationOptions.RunContinuationsAsynchronously);
@@ -149,6 +150,17 @@ namespace EcuDiagSim.App.ViewModels
                 }
 
                 Logger.LogInformation("ECU simulation finished");
+            }
+            catch ( Exception e )
+            {
+                State = "Is Stopping by Error !!";
+                Logger.LogCritical(e, "ECU simulation finished with Error");
+                try
+                {
+                    var tcs = new TaskCompletionSource();
+                    await tcs.Task.WaitAsync(_cts.Token);
+                }
+                catch (TaskCanceledException) {/*nothing to do};*/}
             }
             finally
             {
