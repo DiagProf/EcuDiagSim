@@ -1,0 +1,35 @@
+RAM01 = {
+	DataForComLogicalLinkCreation = {
+		  BusTypeShortName = "ISO_11898_2_DWCAN",
+		  ProtocolShortName = "ISO_15765_3_on_ISO_15765_2",
+		  DlcPinData = {
+					   ["6"] = "HI",
+					   ["14"] = "LOW",
+		  },
+	},
+	ComParamsFromTesterPointOfView = {
+		CP_CanFuncReqFormat = 0x0D;
+		CP_CanFuncReqId = 0x6F1;
+		CP_CanFuncReqExtAddr = 0xEF;
+
+		CP_CanPhysReqFormat = 0x0D;
+		CP_CanPhysReqId = 0x6F1;    
+		CP_CanPhysReqExtAddr = 0x37;
+
+		CP_CanRespUSDTFormat = 0x0D;
+		CP_CanRespUSDTId = 0x637;
+		CP_CanRespUSDTExtAddr = 0xF1;
+	},
+	Raw = {
+		["22 F1 50"] = "62 F1 50 0F 25 90",
+		["22 F1 8A"] = "62 F1 8A 00 00 20",
+		["22 F1 8B"] = "62 F1 8B 21 11 29",
+		["19 06 B7 F5 00 FF"] = "59 06 B7 F5 00 2F 01 00 02 FF 03 00",
+		["19 04 B7 F5 00 FF"] = "59 04 B7 F5 00 2F 00 04 17 00 00 B5 03 17 01 02 23 02 54 17 50 33 17 51 01 00 00 01 04 17 00 00 B5 03 17 01 02 23 02 84 17 50 55 17 51 01 02 00 02 04 17 00 00 D7 8C 17 01 02 6E 2A 64 17 50 33 17 51 01 10 00",
+		["19 06 D6 D4 16 FF"] = "59 06 D6 D4 16 6C 01 00 02 6D 03 01",
+		["19 04 D6 D4 16 FF"] = "59 04 D6 D4 16 6C 00 04 17 00 00 B5 03 17 01 02 23 02 54 17 50 33 17 51 01 00 00 01 04 17 00 00 B5 03 17 01 02 23 02 84 17 50 55 17 51 01 02 00 02 04 17 00 00 D7 86 17 01 02 6E 24 82 17 50 33 17 51 01 00 00",
+		["22 F1 8C"] = "62 F1 8C 30 30 30 33 37 34 37 39 35 30",
+		["22 F1 01"] = "62 F1 01 01 01 00 0A 21 12 14 8D 00 6E 01 00 00 00 37 00 00 06 00 00 5E D7 0B 1E 19 0D 00 00 61 16 0E 09 72 08 00 00 5E E6 07 19 00 08 00 00 5E E8 0A 2D 00 08 00 00 5E E1 0B 1E 19 08 00 00 5E DE 0B 1E 05 08 00 00 5E DB 0B 1E 0F 0D 00 00 79 D9 0E 09 69 01 00 00 42 2A 00 08 00 05 00 00 42 24 10 00 B4",
+		["22 16 00"] = "62 16 00 00",
+    }
+}
