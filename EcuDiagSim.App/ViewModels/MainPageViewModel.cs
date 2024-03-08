@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using EcuDiagSim.App.Helpers;
 using EcuDiagSim.App.Interfaces;
 using Microsoft.Extensions.Logging;
 using Serilog.Formatting.Display;
@@ -26,6 +27,7 @@ namespace EcuDiagSim.App.ViewModels
 
         [ObservableProperty] 
         [NotifyCanExecuteChangedFor(nameof(StopCommand))]
+        [NotifyCanExecuteChangedFor(nameof(ClearCommand))]
         private bool _isRunning;
 
         [ObservableProperty] 
@@ -37,7 +39,10 @@ namespace EcuDiagSim.App.ViewModels
         [ObservableProperty] 
         private string _state;
 
+       [ObservableProperty] private bool _suppress3E7E;
+
         private bool CanRun { get; set; }
+        public ItemsRepeaterLogBroker LogBroker { get; set; }
 
         public MainPageViewModel(ILoggerFactory loggerFactory, IPathService pathService, IApiWithAssociatedVciService apiWithAssociatedVciService)
         {
@@ -48,6 +53,10 @@ namespace EcuDiagSim.App.ViewModels
             _state = "";
         }
 
+        partial void OnSuppress3E7EChanged(bool value )
+        {
+            LogBroker.Suppress3e7e = value;
+        }
 
         partial void OnLuaFileInfosChanged(FileInfoViewModel[] value)
         {
@@ -172,7 +181,7 @@ namespace EcuDiagSim.App.ViewModels
 
         private void Manager_EcuDiagSimManagerEventLog(object? sender, EventArgs e)
         {
-            
+
         }
 
         [RelayCommand(AllowConcurrentExecutions = false, CanExecute = nameof(IsRunning))]
@@ -180,5 +189,12 @@ namespace EcuDiagSim.App.ViewModels
         {
             _cts.Cancel();
         }
+
+        [RelayCommand(AllowConcurrentExecutions = false, CanExecute = nameof(IsRunning))]
+        private async Task ClearAsync()
+        {
+            LogBroker.ClearUiLog();
+        }
+
     }
 }

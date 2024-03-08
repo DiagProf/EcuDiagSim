@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
@@ -42,12 +43,36 @@ public class ItemsRepeaterLogBroker : IWinUi3LogBroker
 
     private void LogEvent(LogEvent logEvent)
     {
+        if (Suppress3e7e)
+        {
+            Dictionary<string,LogEventPropertyValue > dict = new Dictionary<string, LogEventPropertyValue>(logEvent.Properties);
+
+            if (dict.TryGetValue("testerRequest", out LogEventPropertyValue valueReq))
+            {
+                if (valueReq.ToString().StartsWith("\"3E",StringComparison.OrdinalIgnoreCase))
+                    return;
+               
+            }
+            if (dict.TryGetValue("responseString", out LogEventPropertyValue valueResp))
+            {
+                if (valueResp.ToString().StartsWith("\"7E", StringComparison.OrdinalIgnoreCase))
+                    return;
+            }
+        }
+
+
         Logs.Insert(0, _logViewModelBuilder.Build(logEvent));
 
         if ( Logs.Count > 40 )
         {
             Logs.RemoveAt(Logs.Count-1);
         }
+    }
+
+    public bool Suppress3e7e { get; set; }
+    public void ClearUiLog()
+    {
+        Logs.Clear();
     }
 
     public Action<LogEvent> AddLogEvent { get; }

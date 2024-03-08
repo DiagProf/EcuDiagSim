@@ -129,6 +129,9 @@
   <data name="ja" xml:space="preserve">
     <value>日本語</value>
   </data>
+  <data name="MainPage_ClearLog.Content" xml:space="preserve">
+    <value>Clean up log view</value>
+  </data>
   <data name="MainPage_CurrentLoggingSection.Header" xml:space="preserve">
     <value>Current logging section</value>
   </data>

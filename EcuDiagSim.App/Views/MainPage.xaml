@@ -70,7 +70,18 @@
                                 Command="{x:Bind ViewModel.StopCommand}"
                                 Style="{ThemeResource AccentButtonStyle}" />
                         </StackPanel>
+
                         <TextBlock Text="{x:Bind ViewModel.State, Mode=OneWay}"></TextBlock>
+
+                        <StackPanel Orientation="Horizontal">
+                            <Button
+                                x:Uid="MainPage_ClearLog"
+                                VerticalAlignment="Center"
+                                Command="{x:Bind ViewModel.ClearCommand}"
+                                Style="{ThemeResource AccentButtonStyle}" />
+                            <CheckBox Content="Suppress 3E.. 7E.."  IsChecked="{x:Bind ViewModel.Suppress3E7E, Mode=TwoWay}" 
+                                      Visibility="{x:Bind ViewModel.IsRunning, Converter={StaticResource BoolToVisibilityConverter},Mode=TwoWay}"/>
+                        </StackPanel>
                     </StackPanel>
                 </toolkit:HeaderedContentControl>
             </Grid>
@@ -78,6 +89,7 @@
             <toolkit:HeaderedContentControl x:Uid="MainPage_SelectedLuaOverview"
                                             Style="{StaticResource MainHeaderStyle}"
                                             Visibility="{x:Bind ViewModel.IsRunning, Converter={StaticResource InverseBoolToVisibilityConverter},Mode=OneWay}">
+                
                 <StackPanel Margin="{StaticResource SmallTopBottomMargin}" Orientation="Horizontal">
                     <ListView
                         x:Name="LuaFileListView"
@@ -106,6 +118,8 @@
                     </ListView>
                 </StackPanel>
             </toolkit:HeaderedContentControl>
+
+
 
             <toolkit:HeaderedContentControl x:Uid="MainPage_CurrentLoggingSection"
                                             Style="{StaticResource MainHeaderStyle}"
