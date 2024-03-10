@@ -14,7 +14,7 @@ namespace EcuDiagSim.App.Views
         {
             InitializeComponent();
             ExtendsContentIntoTitleBar = true;
-            AppTitleBar.Text = AppTitleBar.Text + $" ({RuntimeInformation.ProcessArchitecture.ToString().ToLower()})"; ;
+            AppTitleBar.Text = AppTitleBar.Text + $" ({RuntimeInformation.ProcessArchitecture.ToString().ToLower()})";
             SetTitleBar(AppTitleBar);
             ViewModel = Ioc.Default.GetRequiredService<MainWindowViewModel>();
         }
