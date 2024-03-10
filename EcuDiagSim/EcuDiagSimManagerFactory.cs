@@ -46,7 +46,7 @@ namespace EcuDiagSim
         {
             var directory = string.Empty;
             List<FileInfo> luaFileInfos = new();
-            FileInfo[] luaFiles;
+          
             if ( File.Exists(path) )
             {
                 // This path is a file
