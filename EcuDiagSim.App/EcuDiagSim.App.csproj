@@ -54,11 +54,11 @@
     <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="5.0.1" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="3.4.0" />
-    <PackageReference Include="Serilog.Expressions" Version="3.4.0" />
+    <PackageReference Include="Serilog.Expressions" Version="3.4.1" />
     <PackageReference Include="Serilog.Sinks.WinUi3" Version="0.2.1-alpha" />
     <PackageReference Include="Serilog.Sinks.WinUi3.LogViewModels" Version="0.2.1-alpha" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.230118.102" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22621.755" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.2.230313.1" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22621.756" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 

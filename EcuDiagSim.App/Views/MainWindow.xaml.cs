@@ -3,6 +3,7 @@ using EcuDiagSim.App.ViewModels;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
+using System.Runtime.InteropServices;
 using WinRT.Interop;
 
 namespace EcuDiagSim.App.Views
@@ -13,6 +14,7 @@ namespace EcuDiagSim.App.Views
         {
             InitializeComponent();
             ExtendsContentIntoTitleBar = true;
+            AppTitleBar.Text = AppTitleBar.Text + $" ({RuntimeInformation.ProcessArchitecture.ToString().ToLower()})"; ;
             SetTitleBar(AppTitleBar);
             ViewModel = Ioc.Default.GetRequiredService<MainWindowViewModel>();
         }
@@ -24,7 +26,7 @@ namespace EcuDiagSim.App.Views
         }
 
 
-        public AppTitleBar TitleBar => AppTitleBar;
+        public AppTitleBar TitleBar => AppTitleBar ;
 
         public NavigationView AppNavigationViewControl => AppNavigationView;
 
