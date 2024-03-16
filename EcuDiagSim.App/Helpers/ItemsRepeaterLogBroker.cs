@@ -58,6 +58,11 @@ public class ItemsRepeaterLogBroker : IWinUi3LogBroker
                 if (valueResp.ToString().StartsWith("\"7E", StringComparison.OrdinalIgnoreCase))
                     return;
             }
+            if (dict.TryGetValue("responseString", out LogEventPropertyValue valueNegResp))
+            {
+                if (valueNegResp.ToString().StartsWith("\"7F 3E", StringComparison.OrdinalIgnoreCase))
+                    return;
+            }
         }
 
 
