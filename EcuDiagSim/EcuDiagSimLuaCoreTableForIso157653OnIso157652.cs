@@ -370,7 +370,7 @@ namespace EcuDiagSim
         {
             public uint CP_CanPhysReqExtAddr { get; set; }
             public uint CP_CanPhysReqFormat { get; set; } = 0x05;
-            public uint CP_CanPhysReqId { get; set; } = 0xFFFFFFFF;
+            public uint CP_CanPhysReqId { get; set; } = 0x1FFFFFFF;
             public uint CP_CanRespUSDTExtAddr { get; set; }
             public uint CP_CanRespUSDTFormat { get; set; } = 0x05;
             public uint CP_CanRespUSDTId { get; set; } = 0xFFFFFFFF;
