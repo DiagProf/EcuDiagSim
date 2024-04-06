@@ -370,7 +370,11 @@ namespace EcuDiagSim
         {
             public uint CP_CanPhysReqExtAddr { get; set; }
             public uint CP_CanPhysReqFormat { get; set; } = 0x05;
-            public uint CP_CanPhysReqId { get; set; } = 0x1FFFFFFF;
+
+            //I'm not sure what I should do here (CP_CanPhysReqId) because for not used, 0xFFFFFFFF is not specified in the ISO 22900-2, but most D-PDU APIs support it.
+            //It really makes sense because if I use 0x1FFFFFFF as default, it could happen that multiple Pages URID-Table get the same CAN-ID, and actually, I want to say not used with 0xFFFFFFFF.
+            //Just like it works with CP_CanRespUSDTId and CP_CanRespUUDTId.
+            public uint CP_CanPhysReqId { get; set; } = 0xFFFFFFFF; 
             public uint CP_CanRespUSDTExtAddr { get; set; }
             public uint CP_CanRespUSDTFormat { get; set; } = 0x05;
             public uint CP_CanRespUSDTId { get; set; } = 0xFFFFFFFF;
