@@ -15,8 +15,10 @@ namespace EcuDiagSim.App.Views
             InitializeComponent();
             ExtendsContentIntoTitleBar = true;
             AppTitleBar.Text = AppTitleBar.Text + $" ({RuntimeInformation.ProcessArchitecture.ToString().ToLower()})";
+            Title = "ECU DiagSim";
             SetTitleBar(AppTitleBar);
             ViewModel = Ioc.Default.GetRequiredService<MainWindowViewModel>();
+           // Activate();
         }
 
         public void InitializeWithWindow(object target)

@@ -14,13 +14,13 @@
             x:Uid="AppTitleBar"
             Grid.Row="0"
             VerticalAlignment="Center"
-            Icon="../Assets/Icon.png"
+            Icon="../Assets/appicon.ico"
             IconHeight="30"
             IconMargin="8,0,0,0"
             IconWidth="30"
             TextFontSize="12"
             TextMargin="28,0,0,0"
-            TextWrapping="NoWrap" />
+            TextWrapping="NoWrap"/>
         <!--  App NavigationView  -->
         <NavigationView
             x:Name="AppNavigationView"
