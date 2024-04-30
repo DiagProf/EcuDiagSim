@@ -27,7 +27,11 @@ At the present time, EcuDiagSim is ready to simulate ECUs for [ISO-TP](https://e
 
 At the Momant... Clone the repository and set the EcuDiagSim.App project as the start project in Visual Studio 2020. Build and launch the project. Don't forget.... build the project for x86 if you have a 32bit version of the D-PDU-API installed or for x64 if you have a 64bit version of the D-PDU-API installed.
 
-*If someone tells me how to build an application that runs without a certificate, I will publish the executable here. So don't hesitate to tell me how to configure this project to get an executable EXE (without the certificate hocus-pocus) out of it.*
+~~*If someone tells me how to build an application that runs without a certificate, I will publish the executable here. So don't hesitate to tell me how to configure this project to get an executable EXE (without the certificate hocus-pocus) out of it.*~~ 
+
+Many users wish to show their appreciation to me, and others inquire whether they can obtain an executable program. For these two reasons, I have decided to offer [EcuDiagSim in the Microsoft Store](https://www.microsoft.com/store/productId/9PLXKN0HNJCJ?ocid=pdpshare). This version supports the 32-bit version of the D-PDU-API, as it is more widely used (at least at the moment).
+
+
 
 After starting the application you should see this. Go to settings and select a VCI (I assume that you have a D-PDU-API capable VCI and everything is already installed.) 
 
@@ -57,8 +61,6 @@ Finally, a picture of the hardware setup. So that everyone can imagine what a re
 
 Lua files don't have a "main" or anything like that. Therefore, the application must define its own entry point. 
 
-
-
 #### CoreTable
 
 In EcuDiagSim the content of a Lua file is assigned to a SimUnit. A SimUnit can have one or more CoreTables. The CoreTable represents, among other things, a part of the Lua file. The CoreTable is also the entry point into Lua. The entry point is defined like this. At the **highest level** in Lua is a **LuaTable** that has elements as its content. One of these elements is again a **LuaTable** with the name "**Raw**". From this it is concluded that the table containing the Raw table is the CoreTable. The following image illustrates this.
@@ -69,15 +71,11 @@ The name of the CoreTable in the image "YourNameForTheECU" can be freely chosen 
 
 I would like to say at this point that e.g. 2 CoreTables in one file means 2 ECU simulations in one file. This is possible but not the preferred way. Why it is supported at all is the following reason. Imagine you simulate a body control unit and an engine control unit. What could now happens in the real vehicle is... If a VIN is written to the body control unit via diagnostics, it is distributed internally in the vehicle via CAN. In the engine control unit, this VIN can be read again via a diagnostic service and the VIN has changed. If you want to simulate something like this, both simulations must be in a Lua environment. However, this is rarely needed, so it is better to have one file per ECU simulation. 
 
-
-
 #### Communication settings
 
 Now a few words about the communication settings. The idea here is that you can take them from the tester data. And they are based on the ISO22900-2. Right away you don't need to worry about it if you don't understand it straight away, 95% of them can be copied over and over again and you only need to change the places with the CAN IDs. Communication settings consist of 2 LuaTables. The LuaTable named "DataForComLogicalLinkCreation" is exactly what the name says, the data with which the ComLogicalLink is created which simulates the ECU. The key and values also come from ISO22900-2. The LuaTable named "ComParamsFromTesterPointOfView" contains the parameters with which the transport protocol is setup. As the name suggests, the values are specified from the viewpoint of the diagnostic tester. The user does not notice that an internal magic shakes the values a bit. Saving the internal magic and setting the parameters right in Lua would overwhelm most users, so it's better to take a tester's perspective. The key and values also come from ISO22900-2 again. 
 
 ![](https://github.com/DiagProf/EcuDiagSim/blob/master/images/CommunicationSettings.png)
-
-
 
 The [project](https://github.com/AVL-DiTEST-DiagDev/car-simulator) that also uses Lua for simulation has a very lightweight communication setup. 
 
@@ -92,8 +90,6 @@ PCM = {
 EcuDiagSim supports these as well, but it only represents a specific facet of the ISO-TP. This is... High speed CAN with 11-bit CANId with no extended addressing on pins 6 and 14. However, it has to be said that this is a very common setup of the transport layer is.
 
 [Here](https://github.com/DiagProf/EcuDiagSim/tree/master/LuaSimFileStore/LuaFilesToShowTechniques) are examples with different communication settings.
-
-
 
 ### Lua Enricher
 
